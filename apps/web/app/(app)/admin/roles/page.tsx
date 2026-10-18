@@ -154,6 +154,7 @@ export default function RolesPage() {
     {
       key: 'type',
       header: 'Type',
+      width: 220,
       render: (role) => (
         <Group gap={6}>
           <Badge variant="outline" size="sm">
@@ -170,6 +171,7 @@ export default function RolesPage() {
     {
       key: 'scope',
       header: 'Access',
+      width: 190,
       render: (role) => (
         <Text size="sm">
           {role.orgWideScope ? 'Whole organisation' : 'Assigned scope'}
@@ -180,12 +182,14 @@ export default function RolesPage() {
       key: 'permissions',
       header: 'Permissions',
       align: 'right',
+      width: 130,
       render: (role) => <Text size="sm">{role.permissions.length}</Text>,
     },
     {
       key: 'users',
       header: 'Users',
       align: 'right',
+      width: 90,
       render: (role) => <Text size="sm">{role.activeUserCount}</Text>,
     },
   ];

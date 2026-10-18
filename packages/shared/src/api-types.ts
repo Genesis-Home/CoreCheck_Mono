@@ -225,6 +225,9 @@ export interface OrganisationUsage {
   lockedUsers: number;
   inactiveUsers: number;
   seatsUsed: number;
+  /** Uploaded files and their total size; counts only, never the files. */
+  storedFiles: number;
+  storageBytes: number;
 }
 
 export interface OrganisationSummary {

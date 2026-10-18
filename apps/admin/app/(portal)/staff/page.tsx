@@ -140,7 +140,8 @@ export default function StaffPage() {
     },
     {
       key: 'role',
-      header: 'Rank',
+      header: 'Role',
+      width: 200,
       render: (member) => (
         <Select
           size="xs"
@@ -152,7 +153,7 @@ export default function StaffPage() {
           value={member.staffRole}
           allowDeselect={false}
           disabled={member.id === me?.id}
-          aria-label={`Rank of ${member.name}`}
+          aria-label={`Role of ${member.name}`}
           onChange={(value) =>
             value &&
             run(update({ id: member.id, staffRole: value as StaffRole }))
@@ -163,6 +164,7 @@ export default function StaffPage() {
     {
       key: 'status',
       header: 'Status',
+      width: 240,
       render: (member) => (
         <Group gap={4}>
           <Badge
@@ -187,6 +189,7 @@ export default function StaffPage() {
     {
       key: 'last',
       header: 'Last sign-in',
+      width: 190,
       render: (member) => (
         <Text size="sm">{formatDateTime(member.lastLoginAt)}</Text>
       ),
@@ -195,6 +198,7 @@ export default function StaffPage() {
       key: 'actions',
       header: '',
       align: 'right',
+      width: 60,
       render: (member) =>
         member.id !== me?.id && (
           <Menu position="bottom-end">

@@ -51,22 +51,27 @@ export default function PlatformAuditPage() {
       header: 'When',
       width: 170,
       render: (event) => (
-        <Text size="sm">{formatDateTime(event.occurredAt)}</Text>
+        <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+          {formatDateTime(event.occurredAt)}
+        </Text>
       ),
     },
     {
       key: 'who',
       header: 'Who',
+      width: 210,
       render: (event) => <Text size="sm">{event.actorName ?? 'System'}</Text>,
     },
     {
       key: 'org',
       header: 'Organisation',
+      width: 220,
       render: (event) => <Text size="sm">{event.organisationName ?? '—'}</Text>,
     },
     {
       key: 'what',
       header: 'What',
+      width: 210,
       render: (event) => (
         <Text size="sm" fw={600}>
           {auditActionLabel(event.action)}

@@ -13,8 +13,9 @@ import {
   Text,
   TextInput,
 } from '@mantine/core';
+import { DateInput } from '@mantine/dates';
 import { useDebouncedValue } from '@mantine/hooks';
-import { IconFilterOff, IconSearch } from '@tabler/icons-react';
+import { IconCalendar, IconFilterOff, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
   type ApiError,
@@ -73,12 +74,15 @@ export default function AuditPage() {
       header: 'When',
       width: 170,
       render: (event) => (
-        <Text size="sm">{formatDateTime(event.occurredAt, tz)}</Text>
+        <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+          {formatDateTime(event.occurredAt, tz)}
+        </Text>
       ),
     },
     {
       key: 'who',
       header: 'Who',
+      width: 210,
       render: (event) => (
         <Group gap={6} wrap="nowrap">
           <Text size="sm">{event.actorName ?? 'System'}</Text>
@@ -93,6 +97,7 @@ export default function AuditPage() {
     {
       key: 'what',
       header: 'What',
+      width: 210,
       render: (event) => (
         <Text size="sm" fw={600}>
           {auditActionLabel(event.action)}
@@ -143,21 +148,29 @@ export default function AuditPage() {
               }}
               aria-label="Search audit history"
             />
-            <TextInput
-              type="date"
-              label="From"
-              value={from}
-              onChange={(event) => {
-                setFrom(event.currentTarget.value);
+            <DateInput
+              placeholder="From date"
+              aria-label="From date"
+              valueFormat="D MMM YYYY"
+              leftSection={<IconCalendar size={16} />}
+              clearable
+              maxDate={to || undefined}
+              value={from || null}
+              onChange={(value) => {
+                setFrom(value ?? '');
                 setPage(1);
               }}
             />
-            <TextInput
-              type="date"
-              label="To"
-              value={to}
-              onChange={(event) => {
-                setTo(event.currentTarget.value);
+            <DateInput
+              placeholder="To date"
+              aria-label="To date"
+              valueFormat="D MMM YYYY"
+              leftSection={<IconCalendar size={16} />}
+              clearable
+              minDate={from || undefined}
+              value={to || null}
+              onChange={(value) => {
+                setTo(value ?? '');
                 setPage(1);
               }}
             />

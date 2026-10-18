@@ -67,13 +67,11 @@ describe('Seat limits (IAD-005, IAD-AC-02)', () => {
 
     // A locked user still holds a seat; deactivating them releases it.
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      await t.http
-        .post('/auth/login')
-        .send({
-          username: third.credentials.username,
-          pin: '999000',
-          client: 'mobile',
-        });
+      await t.http.post('/auth/login').send({
+        username: third.credentials.username,
+        pin: '999000',
+        client: 'mobile',
+      });
     }
     await addOperative(org, 'Four').expect(409);
     await org.admin.post(`/users/${third.user.id}/deactivate`).expect(200);

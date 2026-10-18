@@ -138,13 +138,11 @@ describe('Customer sign-in, PINs and sessions', () => {
     const created = await newOperative();
     const { pin } = await activate(t, created.credentials);
     for (let attempt = 0; attempt < 5; attempt += 1) {
-      await t.http
-        .post('/auth/login')
-        .send({
-          username: created.credentials.username,
-          pin: '999000',
-          client: 'mobile',
-        });
+      await t.http.post('/auth/login').send({
+        username: created.credentials.username,
+        pin: '999000',
+        client: 'mobile',
+      });
     }
     await org.admin.post(`/users/${created.user.id}/unlock`).expect(200);
     await signIn(t, created.credentials.username, pin);
@@ -253,13 +251,11 @@ describe('Customer sign-in, PINs and sessions', () => {
   it('records sign-in, failure, lockout and PIN events in the audit history (SEC-004)', async () => {
     const created = await newOperative();
     await activate(t, created.credentials);
-    await t.http
-      .post('/auth/login')
-      .send({
-        username: created.credentials.username,
-        pin: '999000',
-        client: 'mobile',
-      });
+    await t.http.post('/auth/login').send({
+      username: created.credentials.username,
+      pin: '999000',
+      client: 'mobile',
+    });
 
     const events = (
       await org.admin

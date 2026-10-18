@@ -18,6 +18,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
+  IconCalendarExclamation,
   IconChevronDown,
   IconKey,
   IconLock,
@@ -33,6 +34,23 @@ import { useDispatch } from 'react-redux';
 import { api, useLogoutMutation } from '../lib/api';
 import { ADMIN_NAV, isActive, MAIN_NAV, type NavItem } from '../lib/navigation';
 import { useSession } from '../lib/session';
+
+/** Managers and Admins are warned this many days before expiry (IAD-006). */
+const EXPIRY_WARNING_DAYS = 30;
+
+/** Whole days from today, in the organisation's zone, to a calendar date. */
+const daysUntil = (date: string, timeZone: string): number => {
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+  return Math.round(
+    (Date.parse(`${date}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) /
+      86_400_000,
+  );
+};
 
 /** The signed-in frame: header, role-sensitive navigation and the page. */
 export function AppFrame({ children }: { children: ReactNode }) {
@@ -168,6 +186,29 @@ export function AppFrame({ children }: { children: ReactNode }) {
       </AppShell.Navbar>
 
       <AppShell.Main>
+        {!me.organisation.readOnly &&
+          canAny('users.manage', 'org_settings.manage') &&
+          (() => {
+            const days = daysUntil(
+              me.organisation.expiresOn,
+              me.organisation.timeZone,
+            );
+            return (
+              days <= EXPIRY_WARNING_DAYS && (
+                <Alert
+                  color="yellow"
+                  icon={<IconCalendarExclamation size={18} />}
+                  mb="md"
+                  title="Your CoreCheck account is due to expire"
+                >
+                  {days === 0
+                    ? 'Access becomes read-only after today.'
+                    : `Access becomes read-only after ${formatDate(me.organisation.expiresOn)} (${days} ${days === 1 ? 'day' : 'days'} left).`}{' '}
+                  Contact CoreCheck to renew.
+                </Alert>
+              )
+            );
+          })()}
         {me.organisation.readOnly && (
           <Alert
             color="orange"

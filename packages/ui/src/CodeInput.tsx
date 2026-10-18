@@ -32,7 +32,9 @@ export const CodeInput = ({
       value={value}
       onChange={onChange}
       error={!!error}
-      mt={6}
+      placeholder=""
+      size="md"
+      styles={{ root: { justifyContent: 'space-between', maxWidth: 340 } }}
       getInputProps={(index) => ({
         'aria-label': `${label} digit ${index + 1} of ${length}`,
       })}

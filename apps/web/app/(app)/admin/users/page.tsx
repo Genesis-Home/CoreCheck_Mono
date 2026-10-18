@@ -98,7 +98,7 @@ export default function UsersPage() {
           <Text fw={600} size="sm">
             {user.firstName} {user.lastName}
           </Text>
-          <Text size="xs" c="dimmed" ff="monospace">
+          <Text size="xs" c="dimmed">
             {user.username}
           </Text>
         </Stack>

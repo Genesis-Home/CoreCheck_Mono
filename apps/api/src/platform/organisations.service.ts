@@ -75,6 +75,8 @@ interface OrganisationRow extends OrganisationEntity {
   activeUsers: number;
   lockedUsers: number;
   inactiveUsers: number;
+  storedFiles: number;
+  storageBytes: number;
 }
 
 const SORT_COLUMNS: Record<ListQuery['sort'], string> = {
@@ -92,9 +94,12 @@ const ORGANISATION_SELECT = /* sql */ `
          o.created_at as "createdAt", o.updated_at as "updatedAt",
          coalesce(c.active_users, 0) as "activeUsers",
          coalesce(c.locked_users, 0) as "lockedUsers",
-         coalesce(c.inactive_users, 0) as "inactiveUsers"
+         coalesce(c.inactive_users, 0) as "inactiveUsers",
+         coalesce(s.files, 0) as "storedFiles",
+         coalesce(s.bytes, 0)::float8 as "storageBytes"
     from corecheck.organisations o
-    left join corecheck.organisation_user_counts() c on c.org_id = o.id`;
+    left join corecheck.organisation_user_counts() c on c.org_id = o.id
+    left join corecheck.organisation_storage_usage() s on s.org_id = o.id`;
 
 interface AdminRow {
   id: string;
@@ -489,6 +494,8 @@ export class OrganisationsService {
         lockedUsers: row.lockedUsers,
         inactiveUsers: row.inactiveUsers,
         seatsUsed: row.activeUsers + row.lockedUsers,
+        storedFiles: row.storedFiles,
+        storageBytes: row.storageBytes,
       },
     };
   }

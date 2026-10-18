@@ -10,7 +10,6 @@ import {
   Modal,
   SimpleGrid,
   Stack,
-  Table,
   Text,
   Textarea,
   Title,
@@ -33,12 +32,16 @@ import {
 } from '@corecheck/shared';
 import {
   CredentialsCard,
+  type DetailItem,
+  DetailList,
   ErrorAlert,
+  formatBytes,
   formatDate,
   formatDateTime,
   notifyError,
   notifySuccess,
   OrganisationStatusBadge,
+  plural,
   showApiErrors,
   UserStatusBadge,
 } from '@corecheck/ui';
@@ -173,21 +176,38 @@ export default function OrganisationPage() {
   if (org.status !== 'archived')
     statusButtons.push(['archive', <IconArchive size={16} key="r" />]);
 
-  const facts: Array<[string, ReactNode]> = [
-    ['Seats', `${org.usage.seatsUsed} of ${org.seatLimit} in use`],
-    ['Active users', org.usage.activeUsers],
-    ['Locked users', org.usage.lockedUsers],
-    ['Inactive users', org.usage.inactiveUsers],
-    [
-      'Account dates',
-      `${formatDate(org.startsOn)} – ${formatDate(org.expiresOn)}`,
-    ],
-    ['Time zone', org.timeZone],
-    [
-      'Primary contact',
-      `${org.contactName} · ${org.contactEmail} · ${org.contactPhone}`,
-    ],
-    ['Created', formatDateTime(org.createdAt)],
+  const facts: DetailItem[] = [
+    {
+      label: 'Seats',
+      value: `${org.usage.seatsUsed} of ${org.seatLimit} in use`,
+    },
+    {
+      label: 'Users',
+      value: `${org.usage.activeUsers} active · ${org.usage.lockedUsers} locked · ${org.usage.inactiveUsers} inactive`,
+    },
+    {
+      label: 'Account dates',
+      value: `${formatDate(org.startsOn)} – ${formatDate(org.expiresOn)}`,
+    },
+    {
+      label: 'Storage',
+      value: `${plural(org.usage.storedFiles, 'file')} · ${formatBytes(org.usage.storageBytes)}`,
+    },
+    { label: 'Time zone', value: org.timeZone },
+    {
+      label: 'Primary contact',
+      value: (
+        <>
+          {org.contactName}
+          <br />
+          {org.contactEmail}
+          <br />
+          {org.contactPhone}
+        </>
+      ),
+    },
+    { label: 'Address', value: org.address },
+    { label: 'Created', value: formatDateTime(org.createdAt) },
   ];
 
   return (
@@ -222,7 +242,13 @@ export default function OrganisationPage() {
                 <Button
                   key={action}
                   variant={STATUS_COPY[action].danger ? 'light' : 'filled'}
-                  color={STATUS_COPY[action].danger ? 'red' : undefined}
+                  color={
+                    action === 'suspend'
+                      ? 'orange'
+                      : STATUS_COPY[action].danger
+                        ? 'red'
+                        : undefined
+                  }
                   leftSection={icon}
                   onClick={() => setPendingAction(action)}
                 >
@@ -239,25 +265,10 @@ export default function OrganisationPage() {
       ) : (
         <SimpleGrid cols={{ base: 1, lg: 2 }}>
           <Card withBorder>
-            <Title order={4} mb="sm">
+            <Title order={4} mb="md">
               Account and usage
             </Title>
-            <Table withRowBorders={false}>
-              <Table.Tbody>
-                {facts.map(([label, value]) => (
-                  <Table.Tr key={label}>
-                    <Table.Td w={160}>
-                      <Text size="sm" c="dimmed">
-                        {label}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>
-                      <Text size="sm">{value}</Text>
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
-              </Table.Tbody>
-            </Table>
+            <DetailList items={facts} />
           </Card>
           <Card withBorder>
             <Title order={4} mb="xs">
@@ -267,20 +278,33 @@ export default function OrganisationPage() {
               You can reset or unlock an Admin. Customer records are not visible
               here.
             </Text>
-            <Stack gap="sm">
-              {(admins ?? []).map((admin) => {
+            <Stack gap={0}>
+              {(admins ?? []).map((admin, index) => {
                 const name = `${admin.firstName} ${admin.lastName}`;
                 return (
-                  <Group key={admin.id} justify="space-between" wrap="wrap">
-                    <Stack gap={0}>
-                      <Group gap={6}>
+                  <Group
+                    key={admin.id}
+                    justify="space-between"
+                    wrap="wrap"
+                    py="sm"
+                    style={
+                      index > 0
+                        ? {
+                            borderTop:
+                              '1px solid var(--mantine-color-default-border)',
+                          }
+                        : undefined
+                    }
+                  >
+                    <Stack gap={2}>
+                      <Group gap="xs">
                         <Text size="sm" fw={600}>
                           {name}
                         </Text>
                         <UserStatusBadge status={admin.status} />
                       </Group>
-                      <Text size="xs" c="dimmed" ff="monospace">
-                        {admin.username} · last sign-in{' '}
+                      <Text size="xs" c="dimmed">
+                        {admin.username} · Last sign-in{' '}
                         {formatDateTime(admin.lastLoginAt)}
                       </Text>
                     </Stack>

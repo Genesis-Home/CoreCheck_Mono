@@ -11,7 +11,9 @@ import {
   Textarea,
   TextInput,
 } from '@mantine/core';
+import { DateInput } from '@mantine/dates';
 import type { UseFormReturnType } from '@mantine/form';
+import { IconCalendar } from '@tabler/icons-react';
 import type { FormEvent } from 'react';
 
 export interface OrganisationValues {
@@ -121,17 +123,22 @@ export function OrganisationForm({
               required
               {...form.getInputProps('seatLimit')}
             />
-            <TextInput
+            <DateInput
               label="Account start date"
-              type="date"
+              valueFormat="D MMM YYYY"
+              leftSection={<IconCalendar size={16} />}
               required
               {...form.getInputProps('startsOn')}
+              onChange={(value) => form.setFieldValue('startsOn', value ?? '')}
             />
-            <TextInput
+            <DateInput
               label="Account expiry date"
-              type="date"
+              valueFormat="D MMM YYYY"
+              leftSection={<IconCalendar size={16} />}
+              minDate={form.values.startsOn || undefined}
               required
               {...form.getInputProps('expiresOn')}
+              onChange={(value) => form.setFieldValue('expiresOn', value ?? '')}
             />
           </SimpleGrid>
         </Fieldset>

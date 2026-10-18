@@ -75,12 +75,14 @@ export default function OrganisationsPage() {
       key: 'status',
       header: 'Status',
       sortField: 'status',
+      width: 160,
       render: (org) => <OrganisationStatusBadge status={org.status} />,
     },
     {
       key: 'seats',
       header: 'Seats',
       align: 'right',
+      width: 110,
       render: (org) => (
         <Text size="sm" c={org.seatsUsed >= org.seatLimit ? 'red' : undefined}>
           {org.seatsUsed} / {org.seatLimit}
@@ -91,6 +93,7 @@ export default function OrganisationsPage() {
       key: 'expiresOn',
       header: 'Expires',
       sortField: 'expiresOn',
+      width: 260,
       render: (org) => (
         <Group gap={6} wrap="nowrap">
           <Text size="sm">{formatDate(org.expiresOn)}</Text>

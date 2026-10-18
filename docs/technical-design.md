@@ -133,3 +133,13 @@ Supabase Storage. Error monitoring: Sentry (to be added with production).
 
 Run everything: `npm run check` (lint, typecheck, unit + integration tests,
 build) and `npm run test:e2e` (browser journey; needs built apps).
+
+## 11. Milestone 1 scope items not closed in code
+
+| ITDR scope / FRD item                                    | Status                                                                                                                                                                                                                    |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initial Figma design system and approved core user flows | No Figma file was supplied. The design system exists as code (`packages/ui`: theme, tables, forms, status badges, detail lists) and every Milestone 1 screen is built; a Figma copy needs a designer and client sign-off. |
+| Development, staging and production environments         | Development (local) and production (Render + Supabase) are running. Staging needs a second Supabase project and Render service.                                                                                           |
+| Seat-limit and expiry notifications (IAD-005, IAD-006)   | Shown in the app: Managers/Admins see "all seats in use" and an expiry warning 30 days ahead; the event is audited. Email delivery comes with the notifications milestone (Brevo).                                        |
+| Plant usage in the internal portal (IAD-004)             | User and storage usage are shown; the plant count is added when the plant register exists (Milestone 2).                                                                                                                  |
+| Web hosting on Vercel                                    | Needs a Vercel Pro team (the repository belongs to a private GitHub organisation); Render can host the two Next.js apps instead.                                                                                          |

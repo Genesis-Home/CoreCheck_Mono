@@ -423,6 +423,44 @@ describe('Internal CoreCheck administration (FRD 23)', () => {
         seatsUsed: 1,
       });
     });
+
+    it('shows storage usage as totals only (IAD-004)', async () => {
+      const org = await setUpOrganisation(t, owner);
+      const detail = async () =>
+        (await owner.get(`/platform/organisations/${org.orgId}`).expect(200))
+          .body as OrganisationDetail;
+      expect((await detail()).usage).toMatchObject({
+        storedFiles: 0,
+        storageBytes: 0,
+      });
+
+      const [{ id: userId }] = (await t.dataSource.query(
+        'select id from corecheck.users where username = $1',
+        [org.adminUsername],
+      )) as { id: string }[];
+      const [{ id: siteId }] = (await t.dataSource.query(
+        `insert into corecheck.sites (org_id, name) values ($1, 'Storage site') returning id`,
+        [org.orgId],
+      )) as { id: string }[];
+      const [{ id: checkId }] = (await t.dataSource.query(
+        `insert into corecheck.poc_checks (org_id, site_id, title, plant_label)
+         values ($1, $2, 'Check', 'P-1') returning id`,
+        [org.orgId, siteId],
+      )) as { id: string }[];
+      for (const size of [1500, 2500]) {
+        await t.dataSource.query(
+          `insert into corecheck.poc_evidence
+             (id, org_id, check_id, question_key, storage_path, content_type,
+              size_bytes, uploaded_by, captured_at)
+           values (gen_random_uuid(), $1, $2, 'photo', 'x', 'image/jpeg', $3, $4, now())`,
+          [org.orgId, checkId, size, userId],
+        );
+      }
+      expect((await detail()).usage).toMatchObject({
+        storedFiles: 2,
+        storageBytes: 4000,
+      });
+    });
   });
 });
 

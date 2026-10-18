@@ -1,7 +1,7 @@
 'use client';
 
-import { Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
-import { notifySuccess } from '@corecheck/ui';
+import { Card, SimpleGrid, Title } from '@mantine/core';
+import { type DetailItem, DetailList, notifySuccess } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import { ChangePinForm } from '../../../components/ChangePinForm';
 import {
@@ -37,17 +37,20 @@ export default function ProfilePage() {
   );
   if (!me) return null;
 
-  const rows: Array<[string, string]> = [
-    ['Name', `${me.user.firstName} ${me.user.lastName}`],
-    ['Username', me.user.username],
-    ['Email', me.user.email ?? '—'],
-    ['Role', me.role.name],
-    [
-      'Sites',
-      me.scope.orgWide ? 'All sites' : namesOf(me.scope.siteIds, sites),
-    ],
-    ['Teams', namesOf(me.scope.teamIds, teams)],
-    ['Disciplines', namesOf(me.scope.disciplineIds, disciplines)],
+  const rows: DetailItem[] = [
+    { label: 'Name', value: `${me.user.firstName} ${me.user.lastName}` },
+    { label: 'Username', value: me.user.username },
+    { label: 'Email', value: me.user.email ?? '—' },
+    { label: 'Role', value: me.role.name },
+    {
+      label: 'Sites',
+      value: me.scope.orgWide ? 'All sites' : namesOf(me.scope.siteIds, sites),
+    },
+    { label: 'Teams', value: namesOf(me.scope.teamIds, teams) },
+    {
+      label: 'Disciplines',
+      value: namesOf(me.scope.disciplineIds, disciplines),
+    },
   ];
 
   return (
@@ -61,23 +64,7 @@ export default function ProfilePage() {
           <Title order={4} mb="md">
             Details
           </Title>
-          <Stack gap="xs">
-            {rows.map(([label, value]) => (
-              <Group
-                key={label}
-                justify="space-between"
-                wrap="nowrap"
-                align="flex-start"
-              >
-                <Text size="sm" c="dimmed">
-                  {label}
-                </Text>
-                <Text size="sm" ta="right">
-                  {value}
-                </Text>
-              </Group>
-            ))}
-          </Stack>
+          <DetailList items={rows} />
         </Card>
         <Card withBorder id="pin">
           <Title order={4} mb="md">

@@ -100,11 +100,25 @@ export function DataTable<T>({
           })
         }
         aria-label={`Sort by ${column.header}`}
+        style={{
+          font: 'inherit',
+          color: 'inherit',
+          letterSpacing: 'inherit',
+          textTransform: 'inherit',
+        }}
       >
-        <Group gap={4} wrap="nowrap">
-          <Text fw={600} size="sm">
-            {column.header}
-          </Text>
+        <Group
+          gap={4}
+          wrap="nowrap"
+          justify={
+            column.align === 'right'
+              ? 'flex-end'
+              : column.align === 'center'
+                ? 'center'
+                : 'flex-start'
+          }
+        >
+          <span>{column.header}</span>
           <SortIcon active={active} order={sort.order} />
         </Group>
       </UnstyledButton>
@@ -122,9 +136,9 @@ export function DataTable<T>({
     <>
       <ScrollArea type="auto" offsetScrollbars>
         <Table
-          striped
           highlightOnHover={!!onRowClick}
           verticalSpacing="sm"
+          horizontalSpacing="md"
           miw={640}
           style={{ opacity: loading ? 0.6 : 1 }}
         >
