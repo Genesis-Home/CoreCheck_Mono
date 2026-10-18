@@ -1,12 +1,11 @@
+import './config/load-env-file.js';
 import { NestFactory } from '@nestjs/core';
-import { ConfigService } from '@nestjs/config';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module.js';
+import { configureApp } from './app.setup.js';
+import { APP_CONFIG, type AppConfig } from './config/app-config.js';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.enableShutdownHooks();
-
-  const port = app.get(ConfigService).get<number>('PORT', 4000);
-  await app.listen(port);
-}
-await bootstrap();
+const app = await NestFactory.create<NestExpressApplication>(AppModule);
+const config = app.get<AppConfig>(APP_CONFIG);
+configureApp(app, config);
+await app.listen(config.PORT);

@@ -12,6 +12,10 @@ coverage/
 # turborepo
 .turbo/
 
+# local database and uploaded files (api)
+.local-db/
+apps/api/storage/
+
 # env files (each app commits a .env.example instead)
 .env
 .env.*
@@ -25,3 +29,7 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 .idea/
+
+# browser tests
+test-results/
+playwright-report/
