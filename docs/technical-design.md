@@ -54,18 +54,18 @@ Tested by `test/tenant-isolation.int-spec.ts` (API and raw-SQL RLS probes).
 
 ## 4. Authentication, PINs and sessions (FRD 16)
 
-| Rule          | Decision                                                                                                         |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Username      | first + last name + 2–3 digits, unique platform-wide                                                             |
-| PIN           | 6 digits; weak patterns (111111, 123456, 121212…) refused                                                        |
-| PIN storage   | HMAC-SHA256 with server pepper, then scrypt (N=2^15, r=8) + salt                                                 |
-| Temporary PIN | random, shown once, valid 7 days, must be replaced before any access                                             |
-| Lockout       | 5 consecutive failures → Locked; only an authorised reset/unlock lifts it                                        |
-| Sessions      | opaque 256-bit tokens, SHA-256 stored; one live session per user (DB unique index); new sign-in ends the old one |
-| Timeouts      | web 30 min idle / 12 h max; mobile 30 days; staff 30 min / 8 h                                                   |
-| Staff         | email + password (≥12 chars) + mandatory TOTP MFA, lockout after 5 failures                                      |
-| Rate limit    | 10 sign-in attempts / minute / IP, plus account lockout                                                          |
-| Org state     | Suspended/Archived → no sign-in, sessions ended; before start date → no sign-in; after expiry → read-only        |
+| Rule          | Decision                                                                                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Username      | first + last name + 2–3 digits, unique platform-wide                                                                                                                               |
+| PIN           | 6 digits; weak patterns (111111, 123456, 121212…) refused                                                                                                                          |
+| PIN storage   | HMAC-SHA256 with server pepper, then scrypt (N=2^15, r=8) + salt                                                                                                                   |
+| Temporary PIN | random, shown once, valid 7 days, must be replaced before any access                                                                                                               |
+| Lockout       | 5 consecutive failures → Locked; only an authorised reset/unlock lifts it                                                                                                          |
+| Sessions      | opaque 256-bit tokens, SHA-256 stored; one live session per user (DB unique index); new sign-in ends the old one                                                                   |
+| Timeouts      | web 30 min idle / 12 h max; mobile 30 days; staff 30 min / 8 h                                                                                                                     |
+| Staff         | email + password (≥12 chars), lockout after 5 failures; TOTP MFA available behind `STAFF_MFA_REQUIRED` (off by default — not required by the FRD or ITDR; confirm with the client) |
+| Rate limit    | 10 sign-in attempts / minute / IP, plus account lockout                                                                                                                            |
+| Org state     | Suspended/Archived → no sign-in, sessions ended; before start date → no sign-in; after expiry → read-only                                                                          |
 
 Every sign-in, failure, lockout, PIN change, reset, role/scope change and
 provisioning action is written to `audit_events`, which a trigger makes

@@ -44,7 +44,7 @@ const STAFF_SESSION_LOOKUP = /* sql */ `
 
 const TOUCH_INTERVAL_MS = 60_000;
 
-/** Internal staff sessions: shorter-lived than customer sessions and MFA-gated. */
+/** Internal staff sessions: shorter-lived than customer sessions; MFA-gated when STAFF_MFA_REQUIRED is on. */
 @Injectable()
 export class StaffSessionsService {
   constructor(
@@ -103,7 +103,9 @@ export class StaffSessionsService {
       email: row.email,
       staffRole: row.staffRole,
       mfaEnabled: row.mfaEnabledAt !== null,
-      mfaVerified: row.mfaVerifiedAt !== null,
+      // With staff MFA switched off, the password alone completes sign-in.
+      mfaVerified:
+        !this.config.STAFF_MFA_REQUIRED || row.mfaVerifiedAt !== null,
       mustChangePassword: row.mustChangePassword,
     };
   }

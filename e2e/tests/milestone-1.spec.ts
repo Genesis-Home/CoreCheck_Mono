@@ -32,13 +32,18 @@ const staffSignIn = async (page: Page, owner: StaffAccount) => {
   await page.getByLabel('Email').fill(owner.email);
   await page.getByRole('textbox', { name: 'Password' }).fill(owner.password);
   await page.getByRole('button', { name: 'Continue' }).click();
-  await expect(page.getByText('Enter the 6-digit code')).toBeVisible();
-  await typePin(
-    page,
-    'Authenticator code',
-    await generate({ secret: owner.secret }),
-  );
-  await page.getByRole('button', { name: 'Verify' }).click();
+  const portal = page.getByRole('heading', { name: 'Organisations' });
+  const codePrompt = page.getByText('Enter the 6-digit code');
+  // The code step appears only when the API runs with STAFF_MFA_REQUIRED=true.
+  await expect(portal.or(codePrompt)).toBeVisible();
+  if (await codePrompt.isVisible()) {
+    await typePin(
+      page,
+      'Authenticator code',
+      await generate({ secret: owner.secret }),
+    );
+    await page.getByRole('button', { name: 'Verify' }).click();
+  }
   await expect(
     page.getByRole('heading', { name: 'Organisations' }),
   ).toBeVisible();

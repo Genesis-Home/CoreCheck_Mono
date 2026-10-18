@@ -19,9 +19,11 @@ export default function AccountPage() {
       <Card withBorder maw={520}>
         <Stack>
           <Title order={4}>Change password</Title>
-          <Text size="sm" c="dimmed">
-            Two-factor authentication is on for your account.
-          </Text>
+          {me.mfaEnabled && (
+            <Text size="sm" c="dimmed">
+              Two-factor authentication is on for your account.
+            </Text>
+          )}
           <ChangePasswordForm
             onChanged={() => notifySuccess('Your password has been changed.')}
           />

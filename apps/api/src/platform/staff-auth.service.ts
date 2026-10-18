@@ -20,6 +20,7 @@ import { Clock } from '../common/clock.js';
 import { SecretBox, SecretHasher } from '../common/crypto.js';
 import { AppException, conflict, fieldError } from '../common/errors.js';
 import type { ClientInfo } from '../common/request.js';
+import { type AppConfig, InjectConfig } from '../config/app-config.js';
 import { PlatformStaffEntity } from '../database/entities.js';
 import { SystemDb } from '../database/db-context.js';
 import { StaffSessionsService } from './staff-sessions.service.js';
@@ -55,7 +56,10 @@ const invalidCode = () =>
     { fieldErrors: [{ field: 'code', message: 'That code is not valid.' }] },
   );
 
-/** Password, then a TOTP second factor; both failures count towards lockout. */
+/**
+ * Password, then (when STAFF_MFA_REQUIRED is on) a TOTP second factor; both
+ * failures count towards lockout.
+ */
 @Injectable()
 export class StaffAuthService {
   private dummyHash: Promise<string> | null = null;
@@ -67,6 +71,7 @@ export class StaffAuthService {
     private readonly secretBox: SecretBox,
     private readonly audit: AuditService,
     private readonly clock: Clock,
+    @InjectConfig() private readonly config: AppConfig,
   ) {}
 
   async login(
@@ -118,6 +123,13 @@ export class StaffAuthService {
 
     if (!outcome.ok) throw outcome.error;
     const { token, expiresAt, staff } = outcome.value;
+    if (!this.config.STAFF_MFA_REQUIRED) {
+      return {
+        token,
+        expiresAt,
+        response: { staff: this.toMe(staff, true), next: 'done' },
+      };
+    }
     return {
       token,
       expiresAt,

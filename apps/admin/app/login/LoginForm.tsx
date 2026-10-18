@@ -37,7 +37,12 @@ export function LoginForm() {
       form.setFieldValue('password', '');
       return;
     }
-    router.replace('/mfa');
+    const { next, staff } = result.data;
+    if (next !== 'done') router.replace('/mfa');
+    else
+      router.replace(
+        staff.mustChangePassword ? '/change-password' : '/organisations',
+      );
   });
 
   return (

@@ -11,7 +11,7 @@ import {
 } from '@mantine/core';
 import { CodeInput } from '@corecheck/ui';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ApiError, MfaSetupResponse, StaffMe } from '@corecheck/shared';
 import { AuthCard } from '../../components/AuthCard';
 import {
@@ -32,7 +32,15 @@ export default function MfaPage() {
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  if (!me)
+  // Nothing to do here when the session needs no second factor.
+  useEffect(() => {
+    if (me?.mfaVerified)
+      router.replace(
+        me.mustChangePassword ? '/change-password' : '/organisations',
+      );
+  }, [me, router]);
+
+  if (!me || me.mfaVerified)
     return (
       <Center h="100vh">
         <Loader />

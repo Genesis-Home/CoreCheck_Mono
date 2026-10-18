@@ -209,8 +209,8 @@ export interface StaffMe {
 
 export interface StaffLoginResponse {
   staff: StaffMe;
-  /** The second factor the session needs before it can be used. */
-  next: 'mfa_setup' | 'mfa_verify';
+  /** The second factor the session needs, or done when none is required. */
+  next: 'mfa_setup' | 'mfa_verify' | 'done';
 }
 
 export interface MfaSetupResponse {

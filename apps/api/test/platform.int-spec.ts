@@ -350,13 +350,11 @@ describe('Internal CoreCheck administration (FRD 23)', () => {
       const adminId = admins[0]!.id;
 
       for (let attempt = 0; attempt < 5; attempt += 1) {
-        await t.http
-          .post('/auth/login')
-          .send({
-            username: org.adminUsername,
-            pin: '999000',
-            client: 'mobile',
-          });
+        await t.http.post('/auth/login').send({
+          username: org.adminUsername,
+          pin: '999000',
+          client: 'mobile',
+        });
       }
       const locked = (
         await owner
@@ -425,5 +423,43 @@ describe('Internal CoreCheck administration (FRD 23)', () => {
         seatsUsed: 1,
       });
     });
+  });
+});
+
+describe('Staff sign-in with MFA switched off (STAFF_MFA_REQUIRED=false)', () => {
+  let t: TestApp;
+
+  beforeAll(async () => {
+    t = await createTestApp({ staffMfaRequired: false });
+  });
+  afterAll(() => t.close());
+
+  it('opens the portal with email and password alone', async () => {
+    const account = await createStaffAccount(t, 'owner');
+    const agent = supertest.agent(t.server);
+    const login = await agent
+      .post('/platform/auth/login')
+      .send({ email: account.email, password: account.password })
+      .expect(200);
+    const body = login.body as StaffLoginResponse;
+    expect(body.next).toBe('done');
+    expect(body.staff.mfaVerified).toBe(true);
+    await agent.get('/platform/organisations').expect(200);
+  });
+
+  it('still rejects a wrong password and locks after repeated failures', async () => {
+    const account = await createStaffAccount(t, 'support');
+    const agent = supertest.agent(t.server);
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await agent
+        .post('/platform/auth/login')
+        .send({ email: account.email, password: 'not-the-password-123' })
+        .expect((res) => expect([401, 403]).toContain(res.status));
+    }
+    const locked = await agent
+      .post('/platform/auth/login')
+      .send({ email: account.email, password: account.password })
+      .expect(403);
+    expect(locked.body.code).toBe('ACCOUNT_LOCKED');
   });
 });

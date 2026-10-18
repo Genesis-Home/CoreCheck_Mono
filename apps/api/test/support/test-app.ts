@@ -53,8 +53,11 @@ export interface TestApp {
 }
 
 /** The real application, wired exactly as in production, on the test database. */
-export const createTestApp = async (): Promise<TestApp> => {
+export const createTestApp = async ({
+  staffMfaRequired = true,
+}: { staffMfaRequired?: boolean } = {}): Promise<TestApp> => {
   Object.assign(process.env, {
+    STAFF_MFA_REQUIRED: String(staffMfaRequired),
     NODE_ENV: 'test',
     DATABASE_URL: inject('databaseUrl'),
     DATABASE_SSL: 'off',

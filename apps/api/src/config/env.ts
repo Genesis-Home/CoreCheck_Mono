@@ -41,6 +41,11 @@ const envObject = z.object({
   /** Behind a proxy (Render), trust X-Forwarded-For for client addresses. */
   TRUST_PROXY: flag(false),
   RATE_LIMIT_ENABLED: flag(true),
+  /**
+   * Authenticator-app second factor for internal staff. Neither the FRD nor
+   * the ITDR requires it; off until the client asks for it.
+   */
+  STAFF_MFA_REQUIRED: flag(false),
 
   WEB_SESSION_IDLE_MINUTES: positiveInt(30),
   WEB_SESSION_MAX_HOURS: positiveInt(12),
