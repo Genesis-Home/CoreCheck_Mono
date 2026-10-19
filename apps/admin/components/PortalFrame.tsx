@@ -1,6 +1,6 @@
 'use client';
 
-import { Center, Group, Loader, Text } from '@mantine/core';
+import { Group, Text } from '@mantine/core';
 import {
   IconBuildingSkyscraper,
   IconListDetails,
@@ -12,7 +12,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { STAFF_ROLE_LABELS } from '@corecheck/shared';
-import { AppLayout, COLORS, type NavEntry, Pill } from '@corecheck/ui';
+import {
+  AppLayout,
+  COLORS,
+  type NavEntry,
+  Pill,
+  PageLoader,
+} from '@corecheck/ui';
 import { api, useLogoutMutation, useMeQuery } from '../lib/api';
 
 const NAV: Array<NavEntry & { ownerOnly: boolean }> = [
@@ -52,12 +58,7 @@ export function PortalFrame({ children }: { children: ReactNode }) {
     else if (me.mustChangePassword) router.replace('/change-password');
   }, [me, router]);
 
-  if (!me || pending)
-    return (
-      <Center h="100vh">
-        <Loader />
-      </Center>
-    );
+  if (!me || pending) return <PageLoader label="CoreCheck Admin" />;
 
   const signOut = async () => {
     await logout();

@@ -1,15 +1,7 @@
 'use client';
 
-import {
-  Button,
-  Center,
-  Code,
-  Image,
-  Loader,
-  Stack,
-  Text,
-} from '@mantine/core';
-import { CodeInput } from '@corecheck/ui';
+import { Button, Center, Code, Image, Stack, Text } from '@mantine/core';
+import { CodeInput, PageLoader } from '@corecheck/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { ApiError, MfaSetupResponse, StaffMe } from '@corecheck/shared';
@@ -41,12 +33,7 @@ export default function MfaPage() {
       );
   }, [me, router]);
 
-  if (!me || me.mfaVerified)
-    return (
-      <Center h="100vh">
-        <Loader />
-      </Center>
-    );
+  if (!me || me.mfaVerified) return <PageLoader label="CoreCheck Admin" />;
 
   const done = (staff: StaffMe) =>
     router.replace(

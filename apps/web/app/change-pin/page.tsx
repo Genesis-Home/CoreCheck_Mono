@@ -1,8 +1,8 @@
 'use client';
 
-import { Center, Loader } from '@mantine/core';
+import { Loader } from '@mantine/core';
 import { useRouter } from 'next/navigation';
-import { AuthLayout } from '@corecheck/ui';
+import { AuthLayout, PageLoader } from '@corecheck/ui';
 import { ChangePinForm } from '../../components/ChangePinForm';
 import { useMeQuery } from '../../lib/api';
 
@@ -12,11 +12,7 @@ export default function ChangePinPage() {
   const { data: me } = useMeQuery();
 
   if (!me) {
-    return (
-      <Center h="100vh">
-        <Loader />
-      </Center>
-    );
+    return <PageLoader />;
   }
 
   return (

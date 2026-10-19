@@ -10,6 +10,7 @@ export * from './feedback';
 export * from './format';
 export * from './http';
 export * from './PageHeader';
+export * from './PageLoader';
 export * from './StatusBadge';
 export * from './TableCard';
 export * from './theme';

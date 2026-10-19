@@ -1,6 +1,6 @@
 'use client';
 
-import { Alert, Center, Loader, Text } from '@mantine/core';
+import { Alert, Text } from '@mantine/core';
 import {
   IconCalendarExclamation,
   IconKey,
@@ -11,7 +11,13 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { type ReactNode, useEffect } from 'react';
-import { AppLayout, COLORS, formatDate, type NavEntry } from '@corecheck/ui';
+import {
+  AppLayout,
+  COLORS,
+  formatDate,
+  type NavEntry,
+  PageLoader,
+} from '@corecheck/ui';
 import { useDispatch } from 'react-redux';
 import { api, useLogoutMutation } from '../lib/api';
 import { ADMIN_NAV, isActive, MAIN_NAV, type NavItem } from '../lib/navigation';
@@ -47,11 +53,7 @@ export function AppFrame({ children }: { children: ReactNode }) {
   }, [me, router]);
 
   if (!me || me.mustChangePin) {
-    return (
-      <Center h="100vh">
-        <Loader />
-      </Center>
-    );
+    return <PageLoader />;
   }
 
   const signOut = async () => {

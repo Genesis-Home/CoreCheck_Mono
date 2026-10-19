@@ -3,42 +3,22 @@ import type { UseFormReturnType } from '@mantine/form';
 import { modals } from '@mantine/modals';
 import { IconAlertTriangle, IconInbox } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { Slide, ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import type { ApiError } from '@corecheck/shared';
 
 /**
- * Toasts as on CoreStock (react-toastify, top right, closing on their own),
- * coloured like the CoreCheck Figma: pale tint, matching border and text.
+ * Toasts exactly as on CoreStock: react-toastify's light theme, top right,
+ * a coloured icon and progress bar on white, closing after three seconds.
+ * Only the font and the corner clipping are adjusted.
  */
 const TOAST_CSS = `
 :root {
-  --toastify-color-success: #ECFDF3;
-  --toastify-text-color-success: #067647;
-  --toastify-color-progress-success: #17B26A;
-  --toastify-color-error: #FEF3F2;
-  --toastify-text-color-error: #B42318;
-  --toastify-color-progress-error: #F04438;
-  --toastify-color-info: #EFF8FF;
-  --toastify-text-color-info: #175CD3;
-  --toastify-color-progress-info: #2E90FA;
-  --toastify-color-warning: #FFFAEB;
-  --toastify-text-color-warning: #B54708;
-  --toastify-color-progress-warning: #F79009;
   --toastify-font-family: inherit;
-  --toastify-toast-min-height: 52px;
-  --toastify-toast-bd-radius: 10px;
+  --toastify-toast-bd-radius: 8px;
 }
-/* The toast clips its own progress bar, so the bar follows the rounded
-   corners instead of poking out past the border. */
-.Toastify__toast { overflow: hidden; font-size: 14px; font-weight: 500;
-  box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08); }
-.Toastify__toast--success { border: 1px solid #75E0A7; }
-.Toastify__toast--error { border: 1px solid #FDA29B; }
-.Toastify__toast--info { border: 1px solid #84CAFF; }
-.Toastify__toast--warning { border: 1px solid #FEC84B; }
-.Toastify__toast-icon svg { fill: currentColor; }
-.Toastify__close-button { color: currentColor; opacity: 0.7; align-self: center; }
-.Toastify__progress-bar--wrp { height: 3px; border-radius: 0; }
+/* The toast clips its own progress bar so the bar follows the rounded
+   corners instead of poking past them. */
+.Toastify__toast { overflow: hidden; font-size: 15px; }
 `;
 
 /** Mount once near the root of each app. */
@@ -53,8 +33,7 @@ export const Toaster = () => (
       pauseOnHover
       pauseOnFocusLoss
       draggable
-      theme="colored"
-      transition={Slide}
+      theme="light"
     />
   </>
 );
