@@ -37,70 +37,63 @@ export const AuthLayout = ({
       style={{
         // Figma proportions: the panel is about 37% of the frame.
         flex: '0 0 40%',
-        maxWidth: 640,
+        maxWidth: 720,
         borderRadius: 16,
         position: 'relative',
         overflow: 'hidden',
-        backgroundColor: PANEL_BLUE,
+        // Two soft circles over the panel blue, as in the Figma frame. Sized
+        // in percent so they keep their shape at every screen size.
+        background: [
+          `radial-gradient(circle at 92% 22%, ${CIRCLE_BLUE} 0 58%, transparent 58.4%)`,
+          `radial-gradient(circle at -18% 108%, ${CIRCLE_BLUE} 0 40%, transparent 40.4%)`,
+          PANEL_BLUE,
+        ].join(', '),
       }}
     >
-      {/* The two soft circles behind the artwork, as in the Figma frame. */}
-      <Box
-        aria-hidden
-        style={{
-          position: 'absolute',
-          width: '150%',
-          aspectRatio: '1',
-          borderRadius: '50%',
-          left: '-5%',
-          top: '-48%',
-          backgroundColor: CIRCLE_BLUE,
-        }}
-      />
-      <Box
-        aria-hidden
-        style={{
-          position: 'absolute',
-          width: '130%',
-          aspectRatio: '1',
-          borderRadius: '50%',
-          left: '-55%',
-          top: '34%',
-          backgroundColor: CIRCLE_BLUE,
-        }}
-      />
-      <Box p={24} style={{ position: 'relative' }}>
+      <Box p={{ base: 24, xl: 32 }} style={{ position: 'relative' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-dark.png"
           alt="CoreCheck"
-          style={{ height: 24, width: 'auto' }}
+          style={{ height: 26, width: 'auto' }}
         />
         <Text mt={8} fz="sm" fw={500} c={COLORS.secondaryText}>
           Inspect. Comply. Improve.
         </Text>
       </Box>
-      {/* The product preview sits 13% in from the left, runs to the right
-          edge and stops just above the foot, framed in grey. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/login-preview.png"
-        alt=""
+      {/* The product preview window: 13% in from the left, running off the
+          right edge, from a third of the way down to just above the foot. The
+          picture fills the window from its top-left corner, so the panel
+          looks the same on a laptop and on a wide monitor. */}
+      <Box
         aria-hidden
         style={{
           position: 'absolute',
           left: '13%',
           right: 0,
+          top: '30%',
           bottom: '6%',
-          width: '87%',
-          height: 'auto',
           border: `6px solid ${COLORS.secondaryBorder}`,
           borderRight: 'none',
           borderTopLeftRadius: 18,
           borderBottomLeftRadius: 18,
+          overflow: 'hidden',
           backgroundColor: COLORS.tableHead,
         }}
-      />
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/login-preview.png"
+          alt=""
+          style={{
+            display: 'block',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'left top',
+          }}
+        />
+      </Box>
     </Box>
     <Box
       style={{
