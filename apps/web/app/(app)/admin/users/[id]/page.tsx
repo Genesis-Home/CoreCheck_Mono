@@ -151,13 +151,10 @@ function AccessCard({ user }: { user: UserDetail }) {
 
   return (
     <Card withBorder>
-      <Title order={4} mb="xs">
+      {/* Same heading spacing as Details, so both cards' fields line up. */}
+      <Title order={4} mb="md">
         Role and access
       </Title>
-      <Text size="sm" c="dimmed" mb="md">
-        A user needs both a permission and the record in their sites, teams or
-        disciplines.
-      </Text>
       <form onSubmit={submit} noValidate>
         <Stack>
           <Select
@@ -188,6 +185,10 @@ function AccessCard({ user }: { user: UserDetail }) {
             searchable
             {...form.getInputProps('disciplineIds')}
           />
+          <Text size="xs" c="dimmed" mt={-6}>
+            A user needs both a permission and the record in their sites, teams
+            or disciplines.
+          </Text>
           {(canChangeRole || canAssignScope) && (
             <Group justify="flex-end">
               <Button

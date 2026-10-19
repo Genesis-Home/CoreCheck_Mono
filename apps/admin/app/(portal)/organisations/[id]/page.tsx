@@ -266,13 +266,9 @@ export default function OrganisationPage() {
             <DetailList items={facts} />
           </Card>
           <Card withBorder>
-            <Title order={4} mb="xs">
+            <Title order={4} mb="md">
               Organisation Admins
             </Title>
-            <Text size="sm" c="dimmed" mb="sm">
-              You can reset or unlock an Admin. Customer records are not visible
-              here.
-            </Text>
             <Stack gap={0}>
               {(admins ?? []).map((admin, index) => {
                 const name = `${admin.firstName} ${admin.lastName}`;
@@ -344,6 +340,10 @@ export default function OrganisationPage() {
                 );
               })}
             </Stack>
+            <Text size="xs" c="dimmed" mt="sm">
+              You can reset or unlock an Admin. Customer records are not visible
+              here.
+            </Text>
           </Card>
         </SimpleGrid>
       )}
