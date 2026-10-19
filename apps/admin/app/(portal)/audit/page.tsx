@@ -19,11 +19,10 @@ import {
   formatDateTime,
   SearchInput,
   TableCard,
+  DEFAULT_PAGE_SIZE,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import { useAuditEventsQuery } from '../../../lib/api';
-
-const PAGE_SIZE = 50;
 
 /** Internal security and provisioning records (IAD-004). */
 export default function PlatformAuditPage() {
@@ -31,12 +30,13 @@ export default function PlatformAuditPage() {
   const [search, setSearch] = useState('');
   const [debounced] = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [open, setOpen] = useState<AuditEvent | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
   const [panelOpen, panel] = useDisclosure();
   const { data, isFetching, error } = useAuditEventsQuery({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     category: category ?? undefined,
     search: debounced || undefined,
   });
@@ -129,9 +129,13 @@ export default function PlatformAuditPage() {
             pagination={
               data && {
                 page,
-                pageSize: PAGE_SIZE,
+                pageSize,
                 total: data.total,
                 onChange: setPage,
+                onPageSizeChange: (size: number) => {
+                  setPageSize(size);
+                  setPage(1);
+                },
               }
             }
             empty={<EmptyState title="No matching activity" />}

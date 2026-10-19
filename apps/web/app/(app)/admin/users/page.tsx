@@ -40,13 +40,12 @@ import {
   StatCard,
   TableCard,
   UserStatusBadge,
+  DEFAULT_PAGE_SIZE,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../../components/AppPageHeader';
 import { useSeatUsageQuery, useUsersQuery } from '../../../../lib/api';
 import { useRoleOptions, useScopeOptions } from '../../../../lib/options';
 import { useSession } from '../../../../lib/session';
-
-const PAGE_SIZE = 25;
 
 interface Filters {
   status: UserStatus | null;
@@ -80,10 +79,11 @@ export default function UsersPage() {
   const [panelOpen, panel] = useDisclosure();
   const [sort, setSort] = useState<SortState>({ field: 'name', order: 'asc' });
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const { data, isFetching, error } = useUsersQuery({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     search: debouncedSearch || undefined,
     status: filters.status ?? undefined,
     roleId: filters.roleId ?? undefined,
@@ -305,9 +305,13 @@ export default function UsersPage() {
             pagination={
               data && {
                 page,
-                pageSize: PAGE_SIZE,
+                pageSize,
                 total: data.total,
                 onChange: setPage,
+                onPageSizeChange: (size: number) => {
+                  setPageSize(size);
+                  setPage(1);
+                },
               }
             }
             empty={

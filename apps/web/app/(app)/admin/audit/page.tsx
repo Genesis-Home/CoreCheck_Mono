@@ -30,12 +30,11 @@ import {
   formatDateTime,
   SearchInput,
   TableCard,
+  DEFAULT_PAGE_SIZE,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../../components/AppPageHeader';
 import { useAuditEventsQuery } from '../../../../lib/api';
 import { useSession } from '../../../../lib/session';
-
-const PAGE_SIZE = 50;
 
 interface AuditFilters {
   category: string | null;
@@ -57,11 +56,12 @@ export default function AuditPage() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [open, setOpen] = useState<AuditEvent | null>(null);
 
   const { data, isFetching, error } = useAuditEventsQuery({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     category: category ?? undefined,
     search: debounced || undefined,
     from: from || undefined,
@@ -171,9 +171,13 @@ export default function AuditPage() {
             pagination={
               data && {
                 page,
-                pageSize: PAGE_SIZE,
+                pageSize,
                 total: data.total,
                 onChange: setPage,
+                onPageSizeChange: (size: number) => {
+                  setPageSize(size);
+                  setPage(1);
+                },
               }
             }
             empty={

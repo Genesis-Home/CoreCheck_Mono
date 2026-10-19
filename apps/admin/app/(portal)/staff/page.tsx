@@ -41,7 +41,6 @@ import {
   EmptyState,
   ErrorAlert,
   formatDateTime,
-  notifyError,
   showApiErrors,
   Pill,
   TableCard,

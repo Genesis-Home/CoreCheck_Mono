@@ -40,11 +40,10 @@ import {
   type SortState,
   StatCard,
   TableCard,
+  DEFAULT_PAGE_SIZE,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import { useMeQuery, useOrganisationsQuery } from '../../../lib/api';
-
-const PAGE_SIZE = 25;
 
 /** Totals for the status cards. */
 const useOrganisationCount = (status?: OrganisationStatus) =>
@@ -58,9 +57,10 @@ export default function OrganisationsPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [sort, setSort] = useState<SortState>({ field: 'name', order: 'asc' });
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const { data, isFetching, error } = useOrganisationsQuery({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     search: debounced || undefined,
     status: (status as OrganisationStatus | null) ?? undefined,
     sort: sort.field as 'name',
@@ -234,9 +234,13 @@ export default function OrganisationsPage() {
             pagination={
               data && {
                 page,
-                pageSize: PAGE_SIZE,
+                pageSize,
                 total: data.total,
                 onChange: setPage,
+                onPageSizeChange: (size: number) => {
+                  setPageSize(size);
+                  setPage(1);
+                },
               }
             }
             empty={

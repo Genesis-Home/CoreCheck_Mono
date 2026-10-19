@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Box,
   Button,
@@ -6,6 +8,7 @@ import {
   Loader,
   Pagination,
   ScrollArea,
+  Select,
   Table,
   Text,
   UnstyledButton,
@@ -17,7 +20,7 @@ import {
   IconChevronUp,
   IconSelector,
 } from '@tabler/icons-react';
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { COLORS } from './theme';
 
 export interface Column<T> {
@@ -45,13 +48,21 @@ interface DataTableProps<T> {
   sort?: SortState;
   onSortChange?: (sort: SortState) => void;
   onRowClick?: (row: T) => void;
+  /**
+   * Server-side paging. Without it the table pages the rows it was given
+   * itself, so a long register never turns into an endless scroll.
+   */
   pagination?: {
     page: number;
     pageSize: number;
     total: number;
     onChange: (page: number) => void;
+    onPageSizeChange?: (pageSize: number) => void;
   };
 }
+
+export const PAGE_SIZE_OPTIONS = [10, 25, 50];
+export const DEFAULT_PAGE_SIZE = 10;
 
 const SortIcon = ({
   active,
@@ -82,8 +93,11 @@ export function DataTable<T>({
   sort,
   onSortChange,
   onRowClick,
-  pagination,
+  pagination: serverPagination,
 }: DataTableProps<T>) {
+  const [localPage, setLocalPage] = useState(1);
+  const [localPageSize, setLocalPageSize] = useState(DEFAULT_PAGE_SIZE);
+
   if (loading && !rows) {
     return (
       <Center py={48} style={{ flex: '1 0 auto' }}>
@@ -130,15 +144,29 @@ export function DataTable<T>({
     );
   };
 
-  const pages = pagination
-    ? Math.max(1, Math.ceil(pagination.total / pagination.pageSize))
-    : 1;
-  const first = pagination
-    ? (pagination.page - 1) * pagination.pageSize + 1
-    : 1;
-  const last = pagination
-    ? Math.min(pagination.total, first + rows.length - 1)
-    : rows.length;
+  // Local paging: clamp the page when a search or filter shortens the list.
+  const localPages = Math.max(1, Math.ceil(rows.length / localPageSize));
+  const clampedLocalPage = Math.min(localPage, localPages);
+  const pagination = serverPagination ?? {
+    page: clampedLocalPage,
+    pageSize: localPageSize,
+    total: rows.length,
+    onChange: setLocalPage,
+    onPageSizeChange: (size: number) => {
+      setLocalPageSize(size);
+      setLocalPage(1);
+    },
+  };
+  const pageRows = serverPagination
+    ? rows
+    : rows.slice(
+        (clampedLocalPage - 1) * localPageSize,
+        clampedLocalPage * localPageSize,
+      );
+
+  const pages = Math.max(1, Math.ceil(pagination.total / pagination.pageSize));
+  const first = (pagination.page - 1) * pagination.pageSize + 1;
+  const last = Math.min(pagination.total, first + pageRows.length - 1);
 
   return (
     <>
@@ -182,7 +210,7 @@ export function DataTable<T>({
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {rows.map((row) => (
+              {pageRows.map((row) => (
                 <Table.Tr
                   key={rowKey(row)}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -199,51 +227,70 @@ export function DataTable<T>({
           </Table>
         </ScrollArea>
       </Box>
-      {pagination && (
-        <Group
-          justify="space-between"
-          px="md"
-          py="sm"
-          wrap="wrap"
-          style={{ borderTop: `1px solid ${COLORS.borderStrong}` }}
-        >
+      <Group
+        justify="space-between"
+        px="md"
+        py="sm"
+        wrap="wrap"
+        style={{ borderTop: `1px solid ${COLORS.borderStrong}` }}
+      >
+        <Group gap="lg" wrap="wrap">
           <Text size="sm" c={COLORS.muted} fw={500}>
             Showing {first} to {last} of {pagination.total}
           </Text>
-          {pages > 1 && (
-            <Group gap="xs" wrap="nowrap">
-              <Button
-                variant="default"
-                size="xs"
-                h={34}
-                leftSection={<IconArrowLeft size={15} />}
-                disabled={pagination.page <= 1}
-                onClick={() => pagination.onChange(pagination.page - 1)}
-              >
-                Previous
-              </Button>
-              <Pagination
-                total={pages}
-                value={pagination.page}
-                onChange={pagination.onChange}
-                size="sm"
-                withControls={false}
-                visibleFrom="sm"
-              />
-              <Button
-                variant="default"
-                size="xs"
-                h={34}
-                rightSection={<IconArrowRight size={15} />}
-                disabled={pagination.page >= pages}
-                onClick={() => pagination.onChange(pagination.page + 1)}
-              >
-                Next
-              </Button>
-            </Group>
-          )}
+          {pagination.onPageSizeChange &&
+            pagination.total > PAGE_SIZE_OPTIONS[0]! && (
+              <Group gap={8} wrap="nowrap">
+                <Text size="sm" c={COLORS.muted} fw={500}>
+                  Rows per page
+                </Text>
+                <Select
+                  aria-label="Rows per page"
+                  size="xs"
+                  w={76}
+                  allowDeselect={false}
+                  data={PAGE_SIZE_OPTIONS.map(String)}
+                  value={String(pagination.pageSize)}
+                  onChange={(value) =>
+                    value && pagination.onPageSizeChange?.(Number(value))
+                  }
+                />
+              </Group>
+            )}
         </Group>
-      )}
+        {pages > 1 && (
+          <Group gap="xs" wrap="nowrap">
+            <Button
+              variant="default"
+              size="xs"
+              h={34}
+              leftSection={<IconArrowLeft size={15} />}
+              disabled={pagination.page <= 1}
+              onClick={() => pagination.onChange(pagination.page - 1)}
+            >
+              Previous
+            </Button>
+            <Pagination
+              total={pages}
+              value={pagination.page}
+              onChange={pagination.onChange}
+              size="sm"
+              withControls={false}
+              visibleFrom="sm"
+            />
+            <Button
+              variant="default"
+              size="xs"
+              h={34}
+              rightSection={<IconArrowRight size={15} />}
+              disabled={pagination.page >= pages}
+              onClick={() => pagination.onChange(pagination.page + 1)}
+            >
+              Next
+            </Button>
+          </Group>
+        )}
+      </Group>
     </>
   );
 }

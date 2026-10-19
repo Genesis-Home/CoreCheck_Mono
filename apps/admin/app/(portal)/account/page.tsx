@@ -2,7 +2,6 @@
 
 import { Card, Stack, Text, Title } from '@mantine/core';
 import { STAFF_ROLE_LABELS } from '@corecheck/shared';
-import { notifySuccess } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import { ChangePasswordForm } from '../../../components/ChangePasswordForm';
 import { useMeQuery } from '../../../lib/api';

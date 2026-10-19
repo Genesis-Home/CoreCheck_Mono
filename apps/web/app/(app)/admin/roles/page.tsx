@@ -29,7 +29,6 @@ import {
   EmptyState,
   ErrorAlert,
   Pill,
-  plural,
   SearchInput,
   showApiErrors,
   TableCard,
@@ -238,11 +237,6 @@ export default function RolesPage() {
             onRowClick={(role) => router.push(`/admin/roles/${role.id}`)}
             empty={<EmptyState title="No roles" />}
           />
-        )}
-        {roles && (
-          <Text size="sm" c="dimmed" px="md" pb="md">
-            {plural(visibleRoles?.length ?? 0, 'role')}
-          </Text>
         )}
       </TableCard>
       {can('roles.manage') && roles && (

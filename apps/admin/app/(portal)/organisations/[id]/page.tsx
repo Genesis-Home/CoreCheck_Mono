@@ -38,8 +38,6 @@ import {
   formatBytes,
   formatDate,
   formatDateTime,
-  notifyError,
-  notifySuccess,
   OrganisationStatusBadge,
   plural,
   showApiErrors,
@@ -156,7 +154,7 @@ export default function OrganisationPage() {
 
   const runStatus = async () => {
     if (!pendingAction) return;
-    const result = await changeStatus({
+    await changeStatus({
       id: org.id,
       action: pendingAction,
       reason: reason || undefined,
@@ -313,7 +311,7 @@ export default function OrganisationPage() {
                             variant="default"
                             leftSection={<IconLockOpen size={14} />}
                             onClick={async () => {
-                              const result = await unlock({
+                              await unlock({
                                 orgId: org.id,
                                 userId: admin.id,
                               });
