@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, SimpleGrid, Title } from '@mantine/core';
-import { type DetailItem, DetailList, notifySuccess } from '@corecheck/ui';
+import { type DetailItem, DetailList } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import { ChangePinForm } from '../../../components/ChangePinForm';
 import {

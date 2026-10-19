@@ -37,6 +37,7 @@ export function LoginForm() {
   const params = useSearchParams();
   const [login, { isLoading }] = useLoginMutation();
   const [failure, setFailure] = useState<ApiError | null>(null);
+  const [pinFocus, setPinFocus] = useState(0);
   const reason = params.get('reason');
 
   const form = useForm({
@@ -50,6 +51,7 @@ export function LoginForm() {
     if (result.error) {
       setFailure(result.error as ApiError);
       form.setFieldValue('pin', '');
+      setPinFocus((n) => n + 1);
       return;
     }
     router.replace(
@@ -95,7 +97,12 @@ export function LoginForm() {
               required
               {...form.getInputProps('username')}
             />
-            <CodeInput label="PIN" secret {...form.getInputProps('pin')} />
+            <CodeInput
+              label="PIN"
+              secret
+              focusKey={pinFocus}
+              {...form.getInputProps('pin')}
+            />
             <Button type="submit" loading={isLoading} fullWidth>
               Sign in
             </Button>

@@ -10,6 +10,8 @@ export const ERROR_CODES = {
   OUT_OF_SCOPE: 'OUT_OF_SCOPE',
   RATE_LIMITED: 'RATE_LIMITED',
   INTERNAL_ERROR: 'INTERNAL_ERROR',
+  /** The API is up but cannot reach its database (network or DNS). */
+  SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
 
   // Authentication
   UNAUTHENTICATED: 'UNAUTHENTICATED',

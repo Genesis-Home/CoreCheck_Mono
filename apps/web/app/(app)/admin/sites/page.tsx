@@ -15,7 +15,7 @@ import { useForm } from '@mantine/form';
 import { IconArchive, IconMap2, IconRestore } from '@tabler/icons-react';
 import { useState } from 'react';
 import type { ApiError, Site } from '@corecheck/shared';
-import { ArchivedBadge, notifyError, showApiErrors } from '@corecheck/ui';
+import { ArchivedBadge, showApiErrors } from '@corecheck/ui';
 import { StructureManager } from '../../../../components/structure/StructureManager';
 import {
   useAreasQuery,
@@ -96,7 +96,7 @@ function AreasDrawer({
                   : `Archive ${area.name}`
               }
               onClick={async () => {
-                const result = await setArchived({
+                await setArchived({
                   kind: 'areas',
                   id: area.id,
                   archived: !area.archivedAt,

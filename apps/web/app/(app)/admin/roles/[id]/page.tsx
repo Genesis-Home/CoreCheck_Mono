@@ -34,8 +34,6 @@ import {
   ArchivedBadge,
   confirmAction,
   ErrorAlert,
-  notifyError,
-  notifySuccess,
   showApiErrors,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../../../components/AppPageHeader';
@@ -191,7 +189,7 @@ export default function RolePage() {
     );
 
   const archive = (archived: boolean) => async () => {
-    const result = await setArchived({ id: role.id, archived });
+    await setArchived({ id: role.id, archived });
   };
 
   return (

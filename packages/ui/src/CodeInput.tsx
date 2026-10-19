@@ -2,7 +2,7 @@
 
 import { Box, Group, Input, PinInput, UnstyledButton } from '@mantine/core';
 import { IconEye, IconEyeOff } from '@tabler/icons-react';
-import { type ReactNode, useId, useState } from 'react';
+import { type ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { COLORS } from './theme';
 
 /**
@@ -44,6 +44,7 @@ export const CodeInput = ({
   secret = false,
   value,
   onChange,
+  focusKey,
 }: {
   label: string;
   description?: string;
@@ -53,10 +54,19 @@ export const CodeInput = ({
   secret?: boolean;
   value?: string;
   onChange?: (value: string) => void;
+  /**
+   * Change this number to put the cursor back in the first box, e.g. after a
+   * wrong PIN.
+   */
+  focusKey?: number;
 }) => {
   const [shown, setShown] = useState(false);
   const id = useId();
   const masked = secret && !shown;
+  const boxes = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (focusKey) boxes.current?.querySelector('input')?.focus();
+  }, [focusKey]);
   return (
     <Input.Wrapper
       label={label}
@@ -66,7 +76,11 @@ export const CodeInput = ({
       id={id}
     >
       <style>{CODE_CSS}</style>
-      <Box className="cc-code" data-error={error ? true : undefined}>
+      <Box
+        ref={boxes}
+        className="cc-code"
+        data-error={error ? true : undefined}
+      >
         <PinInput
           length={length}
           type="number"

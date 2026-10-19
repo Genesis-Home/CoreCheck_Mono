@@ -27,8 +27,6 @@ import {
   DataTable,
   EmptyState,
   ErrorAlert,
-  notifyError,
-  notifySuccess,
   SearchInput,
   showApiErrors,
   TableCard,
@@ -107,7 +105,7 @@ export function StructureManager<T extends StructureItem>(props: Props<T>) {
   });
 
   const archive = async (item: T, archived: boolean) => {
-    const result = await props.onArchive(item.id, archived);
+    await props.onArchive(item.id, archived);
   };
 
   const columns: Column<T>[] = [

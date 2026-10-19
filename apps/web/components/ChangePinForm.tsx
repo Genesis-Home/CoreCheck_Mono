@@ -8,6 +8,7 @@ import {
   changePinSchema,
   type MeResponse,
 } from '@corecheck/shared';
+import { useState } from 'react';
 import { CodeInput, showApiErrors } from '@corecheck/ui';
 import { useChangePinMutation } from '../lib/api';
 
@@ -27,6 +28,8 @@ export function ChangePinForm({
   temporary: boolean;
 }) {
   const [changePin, { isLoading }] = useChangePinMutation();
+  const [focusCurrent, setFocusCurrent] = useState(0);
+  const [focusNew, setFocusNew] = useState(0);
   const form = useForm({
     initialValues: { currentPin: '', newPin: '', confirmPin: '' },
     validate: schemaResolver(formSchema, { sync: true }),
@@ -35,7 +38,17 @@ export function ChangePinForm({
   const submit = form.onSubmit(async ({ currentPin, newPin }) => {
     const result = await changePin({ currentPin, newPin });
     if (result.error) {
-      showApiErrors(form, result.error as ApiError);
+      const error = result.error as ApiError;
+      showApiErrors(form, error);
+      // Start the wrong entry again: the new PIN when it was refused,
+      // otherwise the current one.
+      if (error.fieldErrors?.[0]?.field === 'newPin') {
+        form.setValues({ newPin: '', confirmPin: '' });
+        setFocusNew((n) => n + 1);
+      } else {
+        form.setFieldValue('currentPin', '');
+        setFocusCurrent((n) => n + 1);
+      }
       return;
     }
     form.reset();
@@ -48,11 +61,13 @@ export function ChangePinForm({
         <CodeInput
           secret
           label={temporary ? 'Temporary PIN' : 'Current PIN'}
+          focusKey={focusCurrent}
           {...form.getInputProps('currentPin')}
         />
         <CodeInput
           secret
           label="New PIN"
+          focusKey={focusNew}
           description="Six digits. Avoid repeated digits and sequences such as 123456."
           {...form.getInputProps('newPin')}
         />

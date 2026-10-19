@@ -31,6 +31,7 @@ export default function MfaPage() {
   const [enrolment, setEnrolment] = useState<MfaSetupResponse | null>(null);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [codeFocus, setCodeFocus] = useState(0);
 
   // Nothing to do here when the session needs no second factor.
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function MfaPage() {
     if (result.error) {
       setError((result.error as ApiError).message);
       setCode('');
+      setCodeFocus((n) => n + 1);
       return;
     }
     done(result.data);
@@ -69,6 +71,7 @@ export default function MfaPage() {
     <Stack>
       <CodeInput
         label="Authenticator code"
+        focusKey={codeFocus}
         value={code}
         onChange={setCode}
         error={error}

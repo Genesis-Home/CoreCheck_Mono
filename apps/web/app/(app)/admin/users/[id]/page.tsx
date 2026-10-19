@@ -37,8 +37,6 @@ import {
   DetailList,
   ErrorAlert,
   formatDateTime,
-  notifyError,
-  notifySuccess,
   showApiErrors,
   UserStatusBadge,
 } from '@corecheck/ui';
@@ -234,10 +232,7 @@ export default function UserPage() {
 
   const name = `${user.firstName} ${user.lastName}`;
   const act =
-    (
-      action: 'deactivate' | 'reactivate' | 'reset-pin' | 'unlock',
-      done: string,
-    ) =>
+    (action: 'deactivate' | 'reactivate' | 'reset-pin' | 'unlock') =>
     async () => {
       const result = await runAction({ id: user.id, action });
       if (result.error) return;
@@ -268,7 +263,7 @@ export default function UserPage() {
                     title: 'Reset PIN?',
                     message: `${name} will get a new temporary PIN and be signed out. Their account is unlocked if it was locked.`,
                     confirmLabel: 'Reset PIN',
-                    onConfirm: act('reset-pin', ''),
+                    onConfirm: act('reset-pin'),
                   })
                 }
               >
@@ -279,7 +274,7 @@ export default function UserPage() {
               <Button
                 variant="default"
                 leftSection={<IconLockOpen size={16} />}
-                onClick={act('unlock', `${name} can sign in again.`)}
+                onClick={act('unlock')}
               >
                 Unlock
               </Button>
@@ -288,7 +283,7 @@ export default function UserPage() {
               <Button
                 variant="default"
                 leftSection={<IconUserCheck size={16} />}
-                onClick={act('reactivate', `${name} is active again.`)}
+                onClick={act('reactivate')}
               >
                 Reactivate
               </Button>
@@ -304,10 +299,7 @@ export default function UserPage() {
                     message: `${name} will be signed out and unable to sign in. Their history is kept and their seat is freed.`,
                     confirmLabel: 'Deactivate',
                     danger: true,
-                    onConfirm: act(
-                      'deactivate',
-                      `${name} has been deactivated.`,
-                    ),
+                    onConfirm: act('deactivate'),
                   })
                 }
               >

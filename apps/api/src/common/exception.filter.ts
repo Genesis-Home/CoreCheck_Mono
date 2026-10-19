@@ -34,6 +34,33 @@ const STATUS_CODES: Partial<Record<number, ErrorCode>> = {
   [HttpStatus.TOO_MANY_REQUESTS]: ERROR_CODES.RATE_LIMITED,
 };
 
+/** Socket and DNS failures: the database is out of reach, not broken. */
+const UNREACHABLE = new Set([
+  'ENOTFOUND',
+  'EAI_AGAIN',
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'ETIMEDOUT',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+]);
+
+const networkCode = (exception: unknown): string | undefined => {
+  const error = exception as {
+    code?: unknown;
+    driverError?: { code?: unknown };
+    errors?: Array<{ code?: unknown }>;
+  };
+  // pg reports these on the error itself, inside a TypeORM wrapper, or (for
+  // several addresses tried at once) inside an AggregateError.
+  const code = [
+    error?.code,
+    error?.driverError?.code,
+    error?.errors?.[0]?.code,
+  ].find((value): value is string => typeof value === 'string');
+  return code && UNREACHABLE.has(code) ? code : undefined;
+};
+
 interface PgError {
   code?: string;
   constraint?: string;
@@ -95,6 +122,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
                 : 'The request could not be processed.',
         };
       }
+    }
+
+    const unreachable = networkCode(exception);
+    if (unreachable) {
+      this.logger.warn(
+        `Database unreachable (${unreachable}) on ${request.method} ${request.path} [${request.requestId}]`,
+      );
+      return {
+        statusCode: HttpStatus.SERVICE_UNAVAILABLE,
+        code: ERROR_CODES.SERVICE_UNAVAILABLE,
+        message:
+          'CoreCheck cannot reach its database right now. Please try again in a moment.',
+      };
     }
 
     this.logger.error(
