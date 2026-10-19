@@ -12,9 +12,16 @@ import {
   TextInput,
 } from '@mantine/core';
 import { useForm } from '@mantine/form';
-import { IconArchive, IconMap2, IconRestore } from '@tabler/icons-react';
+import {
+  IconArchive,
+  IconCheck,
+  IconMap2,
+  IconPencil,
+  IconRestore,
+  IconX,
+} from '@tabler/icons-react';
 import { useState } from 'react';
-import type { ApiError, Site } from '@corecheck/shared';
+import type { ApiError, Area, Site } from '@corecheck/shared';
 import { ArchivedBadge, showApiErrors } from '@corecheck/ui';
 import { StructureManager } from '../../../../components/structure/StructureManager';
 import {
@@ -23,8 +30,98 @@ import {
   useCreateStructureMutation,
   useSetStructureArchivedMutation,
   useSitesQuery,
+  useUpdateAreaMutation,
   useUpdateStructureMutation,
 } from '../../../../lib/api';
+
+/** One area in the drawer: its name, renamed in place (ORG-002). */
+function AreaRow({ area }: { area: Area }) {
+  const [editing, setEditing] = useState(false);
+  const [updateArea, { isLoading }] = useUpdateAreaMutation();
+  const [setArchived] = useSetStructureArchivedMutation();
+  const form = useForm({ initialValues: { name: area.name } });
+
+  const save = form.onSubmit(async ({ name }) => {
+    const result = await updateArea({ id: area.id, name });
+    if (result.error) return showApiErrors(form, result.error as ApiError);
+    setEditing(false);
+  });
+
+  if (editing)
+    return (
+      <form onSubmit={save}>
+        <Group align="flex-start" wrap="nowrap" gap="xs">
+          <TextInput
+            aria-label={`New name for ${area.name}`}
+            size="sm"
+            style={{ flex: 1 }}
+            autoFocus
+            {...form.getInputProps('name')}
+          />
+          <ActionIcon
+            type="submit"
+            size={36}
+            loading={isLoading}
+            aria-label="Save name"
+          >
+            <IconCheck size={16} />
+          </ActionIcon>
+          <ActionIcon
+            variant="default"
+            size={36}
+            aria-label="Cancel"
+            onClick={() => {
+              form.setValues({ name: area.name });
+              form.clearErrors();
+              setEditing(false);
+            }}
+          >
+            <IconX size={16} />
+          </ActionIcon>
+        </Group>
+      </form>
+    );
+
+  return (
+    <Group justify="space-between" wrap="nowrap">
+      <Group gap={6}>
+        <Text size="sm">{area.name}</Text>
+        {area.archivedAt && <ArchivedBadge />}
+      </Group>
+      <Group gap={4} wrap="nowrap">
+        <ActionIcon
+          variant="subtle"
+          aria-label={`Rename ${area.name}`}
+          onClick={() => {
+            form.setValues({ name: area.name });
+            setEditing(true);
+          }}
+        >
+          <IconPencil size={16} />
+        </ActionIcon>
+        <ActionIcon
+          variant="subtle"
+          aria-label={
+            area.archivedAt ? `Restore ${area.name}` : `Archive ${area.name}`
+          }
+          onClick={async () => {
+            await setArchived({
+              kind: 'areas',
+              id: area.id,
+              archived: !area.archivedAt,
+            });
+          }}
+        >
+          {area.archivedAt ? (
+            <IconRestore size={16} />
+          ) : (
+            <IconArchive size={16} />
+          )}
+        </ActionIcon>
+      </Group>
+    </Group>
+  );
+}
 
 /** Locations or areas within a site (ORG-002). */
 function AreasDrawer({
@@ -40,7 +137,6 @@ function AreasDrawer({
     { skip: !site },
   );
   const [createArea, { isLoading }] = useCreateAreaMutation();
-  const [setArchived] = useSetStructureArchivedMutation();
   const form = useForm({ initialValues: { name: '' } });
 
   const add = form.onSubmit(async ({ name }) => {
@@ -54,7 +150,7 @@ function AreasDrawer({
     <Drawer
       opened={!!site}
       onClose={onClose}
-      title={site ? `Areas at ${site.name}` : ''}
+      title={site ? `Locations and areas at ${site.name}` : ''}
       position="right"
       size="md"
     >
@@ -83,33 +179,7 @@ function AreasDrawer({
           </Text>
         )}
         {(areas ?? []).map((area) => (
-          <Group key={area.id} justify="space-between" wrap="nowrap">
-            <Group gap={6}>
-              <Text size="sm">{area.name}</Text>
-              {area.archivedAt && <ArchivedBadge />}
-            </Group>
-            <ActionIcon
-              variant="subtle"
-              aria-label={
-                area.archivedAt
-                  ? `Restore ${area.name}`
-                  : `Archive ${area.name}`
-              }
-              onClick={async () => {
-                await setArchived({
-                  kind: 'areas',
-                  id: area.id,
-                  archived: !area.archivedAt,
-                });
-              }}
-            >
-              {area.archivedAt ? (
-                <IconRestore size={16} />
-              ) : (
-                <IconArchive size={16} />
-              )}
-            </ActionIcon>
-          </Group>
+          <AreaRow key={area.id} area={area} />
         ))}
       </Stack>
     </Drawer>
@@ -173,7 +243,7 @@ export default function SitesPage() {
             leftSection={<IconMap2 size={16} />}
             onClick={() => setAreasOf(site)}
           >
-            Areas
+            Locations / areas
           </Menu.Item>
         )}
         onCreate={(values) =>
