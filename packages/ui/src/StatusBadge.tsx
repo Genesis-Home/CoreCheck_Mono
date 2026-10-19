@@ -1,11 +1,4 @@
-import { Badge } from '@mantine/core';
-import {
-  IconArchive,
-  IconCircleCheck,
-  IconCircleMinus,
-  IconLock,
-  IconPlayerPause,
-} from '@tabler/icons-react';
+import { Box } from '@mantine/core';
 import type { ReactNode } from 'react';
 import {
   ORGANISATION_STATUS_LABELS,
@@ -14,34 +7,62 @@ import {
   type UserStatus,
 } from '@corecheck/shared';
 
-interface Look {
-  color: string;
-  icon: ReactNode;
-}
+/** CoreStock's status pill colours: text on a pale tint of the same hue. */
+export const TONES = {
+  success: { color: '#087442', background: '#EDFCF2' },
+  warning: { color: '#B54708', background: '#FFFAEB' },
+  danger: { color: '#B6271F', background: '#FEF3F2' },
+  neutral: { color: '#364152', background: '#EEF2F6' },
+  info: { color: '#175CD3', background: '#EFF8FF' },
+} as const;
 
-const ICON = 14;
+export type Tone = keyof typeof TONES;
 
-const USER_LOOKS: Record<UserStatus, Look> = {
-  active: { color: 'green', icon: <IconCircleCheck size={ICON} /> },
-  inactive: { color: 'gray', icon: <IconCircleMinus size={ICON} /> },
-  locked: { color: 'red', icon: <IconLock size={ICON} /> },
-};
-
-const ORGANISATION_LOOKS: Record<OrganisationStatus, Look> = {
-  active: { color: 'green', icon: <IconCircleCheck size={ICON} /> },
-  suspended: { color: 'orange', icon: <IconPlayerPause size={ICON} /> },
-  archived: { color: 'gray', icon: <IconArchive size={ICON} /> },
-};
-
-/** Status always carries an icon and words as well as colour (DSH-AC-04, NFR-006). */
-const StatusPill = ({ look, label }: { look: Look; label: string }) => (
-  <Badge color={look.color} variant="light" leftSection={look.icon} radius="sm">
-    {label}
-  </Badge>
+/**
+ * A rounded status pill. Status is always written out, never colour alone
+ * (DSH-AC-04, NFR-006).
+ */
+export const Pill = ({
+  tone = 'neutral',
+  children,
+}: {
+  tone?: Tone;
+  children: ReactNode;
+}) => (
+  <Box
+    component="span"
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+      padding: '4px 12px',
+      borderRadius: 999,
+      fontSize: 13,
+      fontWeight: 500,
+      lineHeight: 1.4,
+      whiteSpace: 'nowrap',
+      color: TONES[tone].color,
+      backgroundColor: TONES[tone].background,
+    }}
+  >
+    {children}
+  </Box>
 );
 
+const USER_TONES: Record<UserStatus, Tone> = {
+  active: 'success',
+  inactive: 'neutral',
+  locked: 'danger',
+};
+
+const ORGANISATION_TONES: Record<OrganisationStatus, Tone> = {
+  active: 'success',
+  suspended: 'warning',
+  archived: 'neutral',
+};
+
 export const UserStatusBadge = ({ status }: { status: UserStatus }) => (
-  <StatusPill look={USER_LOOKS[status]} label={USER_STATUS_LABELS[status]} />
+  <Pill tone={USER_TONES[status]}>{USER_STATUS_LABELS[status]}</Pill>
 );
 
 export const OrganisationStatusBadge = ({
@@ -49,15 +70,9 @@ export const OrganisationStatusBadge = ({
 }: {
   status: OrganisationStatus;
 }) => (
-  <StatusPill
-    look={ORGANISATION_LOOKS[status]}
-    label={ORGANISATION_STATUS_LABELS[status]}
-  />
+  <Pill tone={ORGANISATION_TONES[status]}>
+    {ORGANISATION_STATUS_LABELS[status]}
+  </Pill>
 );
 
-export const ArchivedBadge = () => (
-  <StatusPill
-    look={{ color: 'gray', icon: <IconArchive size={ICON} /> }}
-    label="Archived"
-  />
-);
+export const ArchivedBadge = () => <Pill tone="neutral">Archived</Pill>;

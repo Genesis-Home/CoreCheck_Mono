@@ -3,7 +3,7 @@
 import { Anchor } from '@mantine/core';
 import Link from 'next/link';
 import type { ComponentProps } from 'react';
-import { PageHeader } from '@corecheck/ui';
+import { COLORS, PageHeader } from '@corecheck/ui';
 
 /** PageHeader with breadcrumbs rendered as client-side links. */
 export const AppPageHeader = (
@@ -12,7 +12,7 @@ export const AppPageHeader = (
   <PageHeader
     {...props}
     renderLink={(href, label) => (
-      <Anchor component={Link} href={href} size="sm">
+      <Anchor component={Link} href={href} size="sm" c={COLORS.muted} fw={500}>
         {label}
       </Anchor>
     )}

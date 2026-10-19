@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 import { APP_NAME } from '@corecheck/shared';
 // globals.css first: it declares the cascade-layer order that Mantine's
@@ -10,11 +10,23 @@ import '@mantine/notifications/styles.layer.css';
 import '@mantine/dates/styles.layer.css';
 import { Providers } from './providers';
 
-// Self-hosted at build time; the theme reads --font-inter.
-const inter = Inter({
-  subsets: ['latin'],
+// The CoreStock type pair: Satoshi for text, Manrope for headings.
+const satoshi = localFont({
+  src: [
+    { path: './fonts/Satoshi-Regular.otf', weight: '400' },
+    { path: './fonts/Satoshi-Medium.otf', weight: '500' },
+    { path: './fonts/Satoshi-Bold.otf', weight: '700' },
+  ],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-satoshi',
+});
+const manrope = localFont({
+  src: [
+    { path: './fonts/Manrope-SemiBold.ttf', weight: '600' },
+    { path: './fonts/Manrope-Bold.ttf', weight: '700' },
+  ],
+  display: 'swap',
+  variable: '--font-manrope',
 });
 
 export const metadata: Metadata = {
@@ -24,7 +36,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en-GB" className={inter.variable} {...mantineHtmlProps}>
+    <html
+      lang="en-GB"
+      className={`${satoshi.variable} ${manrope.variable}`}
+      {...mantineHtmlProps}
+    >
       <head>
         <ColorSchemeScript />
       </head>

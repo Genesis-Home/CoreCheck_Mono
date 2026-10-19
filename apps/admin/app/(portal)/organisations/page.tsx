@@ -4,15 +4,19 @@ import {
   Badge,
   Button,
   Group,
-  Paper,
   Select,
   SimpleGrid,
   Stack,
   Text,
-  TextInput,
 } from '@mantine/core';
-import { useDebouncedValue } from '@mantine/hooks';
-import { IconPlus, IconSearch } from '@tabler/icons-react';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
+import {
+  IconArchive,
+  IconBuilding,
+  IconCircleCheck,
+  IconPlayerPause,
+  IconPlus,
+} from '@tabler/icons-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -28,14 +32,23 @@ import {
   DataTable,
   EmptyState,
   ErrorAlert,
+  FilterButton,
+  FilterPanel,
   formatDate,
   OrganisationStatusBadge,
+  SearchInput,
   type SortState,
+  StatCard,
+  TableCard,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import { useMeQuery, useOrganisationsQuery } from '../../../lib/api';
 
 const PAGE_SIZE = 25;
+
+/** Totals for the status cards. */
+const useOrganisationCount = (status?: OrganisationStatus) =>
+  useOrganisationsQuery({ page: 1, pageSize: 1, status }).data?.total;
 
 export default function OrganisationsPage() {
   const router = useRouter();
@@ -54,6 +67,45 @@ export default function OrganisationsPage() {
     order: sort.order,
   });
   const canProvision = me?.staffRole === 'owner' || me?.staffRole === 'admin';
+  const [draftStatus, setDraftStatus] = useState<string | null>(null);
+  const [panelOpen, panel] = useDisclosure();
+  const counts = {
+    all: useOrganisationCount(),
+    active: useOrganisationCount('active'),
+    suspended: useOrganisationCount('suspended'),
+    archived: useOrganisationCount('archived'),
+  };
+  const cards: Array<{
+    label: string;
+    value: number | undefined;
+    status: OrganisationStatus | null;
+    icon: typeof IconBuilding;
+  }> = [
+    {
+      label: 'Total Organisations',
+      value: counts.all,
+      status: null,
+      icon: IconBuilding,
+    },
+    {
+      label: 'Active',
+      value: counts.active,
+      status: 'active',
+      icon: IconCircleCheck,
+    },
+    {
+      label: 'Suspended',
+      value: counts.suspended,
+      status: 'suspended',
+      icon: IconPlayerPause,
+    },
+    {
+      label: 'Archived',
+      value: counts.archived,
+      status: 'archived',
+      icon: IconArchive,
+    },
+  ];
 
   const columns: Column<OrganisationSummary>[] = [
     {
@@ -124,70 +176,117 @@ export default function OrganisationsPage() {
           )
         }
       />
-      <Paper withBorder p="md">
-        <Stack>
-          <SimpleGrid cols={{ base: 1, sm: 2 }}>
-            <TextInput
-              placeholder="Search name, contact or industry"
-              leftSection={<IconSearch size={16} />}
+      <SimpleGrid cols={{ base: 2, xl: 4 }} mb="lg" spacing="sm">
+        {cards.map((card) => (
+          <StatCard
+            key={card.label}
+            label={card.label}
+            value={card.value ?? '—'}
+            icon={<card.icon size={20} />}
+            selected={status === card.status}
+            onClick={() => {
+              setStatus(card.status);
+              setPage(1);
+            }}
+          />
+        ))}
+      </SimpleGrid>
+      <TableCard
+        toolbar={
+          <>
+            <SearchInput
               value={search}
-              onChange={(event) => {
-                setSearch(event.currentTarget.value);
-                setPage(1);
-              }}
-              aria-label="Search organisations"
-            />
-            <Select
-              placeholder="Any status"
-              data={ORGANISATION_STATUSES.map((value) => ({
-                value,
-                label: ORGANISATION_STATUS_LABELS[value],
-              }))}
-              value={status}
               onChange={(value) => {
-                setStatus(value);
+                setSearch(value);
                 setPage(1);
               }}
-              clearable
-              aria-label="Filter by status"
+              placeholder="Search name, contact or industry"
+              label="Search organisations"
             />
-          </SimpleGrid>
-          {error ? (
-            <ErrorAlert error={error as ApiError} />
-          ) : (
-            <DataTable
-              columns={columns}
-              rows={data?.items}
-              rowKey={(org) => org.id}
-              loading={isFetching}
-              sort={sort}
-              onSortChange={(next) => {
-                setSort(next);
+            <FilterButton
+              count={status ? 1 : 0}
+              onOpen={() => {
+                setDraftStatus(status);
+                panel.open();
+              }}
+              onClear={() => {
+                setStatus(null);
                 setPage(1);
               }}
-              onRowClick={(org) => router.push(`/organisations/${org.id}`)}
-              pagination={
-                data && {
-                  page,
-                  pageSize: PAGE_SIZE,
-                  total: data.total,
-                  onChange: setPage,
+            />
+          </>
+        }
+      >
+        {error ? (
+          <ErrorAlert error={error as ApiError} />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={data?.items}
+            rowKey={(org) => org.id}
+            loading={isFetching}
+            sort={sort}
+            onSortChange={(next) => {
+              setSort(next);
+              setPage(1);
+            }}
+            onRowClick={(org) => router.push(`/organisations/${org.id}`)}
+            pagination={
+              data && {
+                page,
+                pageSize: PAGE_SIZE,
+                total: data.total,
+                onChange: setPage,
+              }
+            }
+            empty={
+              <EmptyState
+                title="No organisations found"
+                message={
+                  search || status
+                    ? 'Try another search or filter.'
+                    : 'Create the first customer organisation.'
                 }
-              }
-              empty={
-                <EmptyState
-                  title="No organisations found"
-                  message={
-                    search || status
-                      ? 'Try another search or filter.'
-                      : 'Create the first customer organisation.'
-                  }
-                />
-              }
-            />
-          )}
-        </Stack>
-      </Paper>
+              />
+            }
+          />
+        )}
+      </TableCard>
+      <FilterPanel
+        opened={panelOpen}
+        onClose={panel.close}
+        onApply={() => {
+          setStatus(draftStatus);
+          setPage(1);
+          panel.close();
+        }}
+        onClear={() => {
+          setStatus(null);
+          setDraftStatus(null);
+          setPage(1);
+          panel.close();
+        }}
+        sections={[
+          {
+            key: 'status',
+            label: 'Status',
+            count: draftStatus ? 1 : 0,
+            content: (
+              <Select
+                placeholder="Any status"
+                data={ORGANISATION_STATUSES.map((value) => ({
+                  value,
+                  label: ORGANISATION_STATUS_LABELS[value],
+                }))}
+                value={draftStatus}
+                onChange={setDraftStatus}
+                clearable
+                aria-label="Filter by status"
+              />
+            ),
+          },
+        ]}
+      />
     </>
   );
 }

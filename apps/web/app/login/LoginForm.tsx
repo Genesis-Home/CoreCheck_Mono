@@ -1,26 +1,16 @@
 'use client';
 
-import {
-  Alert,
-  Button,
-  Center,
-  Paper,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
+import { Alert, Button, Stack, Text, TextInput } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 import { IconInfoCircle, IconLock } from '@tabler/icons-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import {
   type ApiError,
-  APP_NAME,
   customerLoginSchema,
   ERROR_CODES,
 } from '@corecheck/shared';
-import { CodeInput } from '@corecheck/ui';
+import { AuthLayout, CodeInput, COLORS } from '@corecheck/ui';
 import { useLoginMutation } from '../../lib/api';
 
 /** Why the user is back on this page, from ?reason=. */
@@ -72,58 +62,50 @@ export function LoginForm() {
   const remaining = failure?.details?.remainingAttempts as number | undefined;
 
   return (
-    <Center mih="100vh" p="md" bg="var(--mantine-color-gray-0)">
-      <Paper withBorder shadow="sm" p="xl" w="100%" maw={420}>
-        <Stack gap="lg">
-          <Stack gap={4}>
-            <Text fw={800} size="xl" c="brand">
-              {APP_NAME}
-            </Text>
-            <Title order={2}>Sign in</Title>
-            <Text c="dimmed" size="sm">
-              Use the username and PIN your administrator gave you.
-            </Text>
+    <AuthLayout
+      title="Welcome Back!"
+      description="Enter your username and PIN to sign in to CoreCheck."
+    >
+      <Stack gap="lg">
+        {reason && REASONS[reason] && !failure && (
+          <Alert color="blue" icon={<IconInfoCircle size={18} />}>
+            {REASONS[reason]}
+          </Alert>
+        )}
+        {failure && (
+          <Alert color="red" icon={<IconLock size={18} />} role="alert">
+            {failure.message}
+            {remaining !== undefined && remaining > 0 && (
+              <Text size="sm" mt={4}>
+                {remaining} {remaining === 1 ? 'attempt' : 'attempts'} left
+                before your account is locked.
+              </Text>
+            )}
+          </Alert>
+        )}
+
+        <form onSubmit={submit} noValidate>
+          <Stack gap="md">
+            <TextInput
+              label="Username"
+              placeholder="Enter your username"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              required
+              {...form.getInputProps('username')}
+            />
+            <CodeInput label="PIN" secret {...form.getInputProps('pin')} />
+            <Button type="submit" loading={isLoading} fullWidth>
+              Sign in
+            </Button>
           </Stack>
-
-          {reason && REASONS[reason] && !failure && (
-            <Alert color="blue" icon={<IconInfoCircle size={18} />}>
-              {REASONS[reason]}
-            </Alert>
-          )}
-          {failure && (
-            <Alert color="red" icon={<IconLock size={18} />} role="alert">
-              {failure.message}
-              {remaining !== undefined && remaining > 0 && (
-                <Text size="sm" mt={4}>
-                  {remaining} {remaining === 1 ? 'attempt' : 'attempts'} left
-                  before your account is locked.
-                </Text>
-              )}
-            </Alert>
-          )}
-
-          <form onSubmit={submit} noValidate>
-            <Stack gap="md">
-              <TextInput
-                label="Username"
-                autoComplete="username"
-                autoCapitalize="none"
-                spellCheck={false}
-                required
-                {...form.getInputProps('username')}
-              />
-              <CodeInput label="PIN" secret {...form.getInputProps('pin')} />
-              <Button type="submit" loading={isLoading} fullWidth>
-                Sign in
-              </Button>
-            </Stack>
-          </form>
-          <Text size="xs" c="dimmed">
-            Forgotten your PIN or locked out? Ask your administrator or manager
-            to reset it.
-          </Text>
-        </Stack>
-      </Paper>
-    </Center>
+        </form>
+        <Text size="sm" c={COLORS.muted} ta="center">
+          Forgotten your PIN or locked out? Ask your administrator or manager to
+          reset it.
+        </Text>
+      </Stack>
+    </AuthLayout>
   );
 }

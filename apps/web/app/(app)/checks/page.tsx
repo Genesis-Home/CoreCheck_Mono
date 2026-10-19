@@ -6,7 +6,6 @@ import {
   Button,
   Group,
   Modal,
-  Paper,
   Select,
   Stack,
   Text,
@@ -24,6 +23,7 @@ import {
 import {
   type Column,
   DataTable,
+  TableCard,
   EmptyState,
   ErrorAlert,
   formatDateTime,
@@ -197,7 +197,7 @@ export default function ChecksPage() {
         whoever gave them, and when two people submit the same check the first
         submission received wins.
       </Alert>
-      <Paper withBorder p="md">
+      <TableCard>
         {error ? (
           <ErrorAlert error={error as ApiError} />
         ) : (
@@ -214,7 +214,7 @@ export default function ChecksPage() {
             }
           />
         )}
-      </Paper>
+      </TableCard>
       <NewCheckModal opened={creating} onClose={close} />
     </>
   );

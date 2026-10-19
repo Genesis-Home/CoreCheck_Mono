@@ -6,7 +6,6 @@ import {
   Group,
   Menu,
   Modal,
-  Paper,
   Stack,
   Switch,
   Text,
@@ -30,7 +29,9 @@ import {
   ErrorAlert,
   notifyError,
   notifySuccess,
+  SearchInput,
   showApiErrors,
+  TableCard,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../AppPageHeader';
 
@@ -73,6 +74,11 @@ interface Props<T extends StructureItem> {
 export function StructureManager<T extends StructureItem>(props: Props<T>) {
   const { noun, fields } = props;
   const [editing, setEditing] = useState<T | 'new' | null>(null);
+  const [search, setSearch] = useState('');
+  const term = search.trim().toLowerCase();
+  const visibleItems = term
+    ? props.items?.filter((item) => item.name.toLowerCase().includes(term))
+    : props.items;
   const blank = Object.fromEntries(fields.map((field) => [field.key, '']));
   const form = useForm<Record<string, string>>({ initialValues: blank });
 
@@ -180,37 +186,45 @@ export function StructureManager<T extends StructureItem>(props: Props<T>) {
           </Button>
         }
       />
-      <Paper withBorder p="md">
-        <Stack>
-          <Switch
-            label="Show archived"
-            checked={props.showArchived}
-            onChange={(event) =>
-              props.onShowArchivedChange(event.currentTarget.checked)
-            }
-          />
-          {props.error ? (
-            <ErrorAlert error={props.error as ApiError} />
-          ) : (
-            <DataTable
-              columns={columns}
-              rows={props.items}
-              rowKey={(item) => item.id}
-              loading={props.loading}
-              empty={
-                <EmptyState
-                  title={`No ${noun.toLowerCase()}s yet`}
-                  action={
-                    <Button onClick={() => open('new')}>
-                      Add {noun.toLowerCase()}
-                    </Button>
-                  }
-                />
+      <TableCard
+        toolbar={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder={`Search ${noun.toLowerCase()}s`}
+            />
+            <Switch
+              label="Show archived"
+              checked={props.showArchived}
+              onChange={(event) =>
+                props.onShowArchivedChange(event.currentTarget.checked)
               }
             />
-          )}
-        </Stack>
-      </Paper>
+          </>
+        }
+      >
+        {props.error ? (
+          <ErrorAlert error={props.error as ApiError} />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={visibleItems}
+            rowKey={(item) => item.id}
+            loading={props.loading}
+            empty={
+              <EmptyState
+                title={`No ${noun.toLowerCase()}s yet`}
+                action={
+                  <Button onClick={() => open('new')}>
+                    Add {noun.toLowerCase()}
+                  </Button>
+                }
+              />
+            }
+          />
+        )}
+      </TableCard>
       <Modal
         opened={editing !== null}
         onClose={() => setEditing(null)}

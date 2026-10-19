@@ -6,16 +6,13 @@ import {
   Code,
   Group,
   Modal,
-  Paper,
   Select,
-  SimpleGrid,
   Stack,
   Text,
-  TextInput,
 } from '@mantine/core';
 import { DateInput } from '@mantine/dates';
-import { useDebouncedValue } from '@mantine/hooks';
-import { IconCalendar, IconFilterOff, IconSearch } from '@tabler/icons-react';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
+import { IconCalendar } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
   type ApiError,
@@ -28,13 +25,24 @@ import {
   DataTable,
   EmptyState,
   ErrorAlert,
+  FilterButton,
+  FilterPanel,
   formatDateTime,
+  SearchInput,
+  TableCard,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../../components/AppPageHeader';
 import { useAuditEventsQuery } from '../../../../lib/api';
 import { useSession } from '../../../../lib/session';
 
 const PAGE_SIZE = 50;
+
+interface AuditFilters {
+  category: string | null;
+  from: string;
+  to: string;
+}
+const NO_FILTERS: AuditFilters = { category: null, from: '', to: '' };
 const CUSTOMER_CATEGORIES = AUDIT_CATEGORIES.filter(
   (c) => !['organisation', 'staff'].includes(c.key),
 );
@@ -59,13 +67,20 @@ export default function AuditPage() {
     from: from || undefined,
     to: to || undefined,
   });
-  const filtered = !!(category || search || from || to);
-  const reset = () => {
-    setCategory(null);
-    setSearch('');
-    setFrom('');
-    setTo('');
+  const [draft, setDraft] = useState<AuditFilters>(NO_FILTERS);
+  const [panelOpen, panel] = useDisclosure();
+  const applied = [category, from, to].filter(Boolean).length;
+  const filtered = !!search || applied > 0;
+  const applyFilters = (next: AuditFilters) => {
+    setCategory(next.category);
+    setFrom(next.from);
+    setTo(next.to);
+    setDraft(next);
     setPage(1);
+  };
+  const reset = () => {
+    setSearch('');
+    applyFilters(NO_FILTERS);
   };
 
   const columns: Column<AuditEvent>[] = [
@@ -121,99 +136,130 @@ export default function AuditPage() {
         title="Security audit"
         description={`Sign-ins, PIN changes, user, role and structure changes. Times are in ${tz ?? 'your organisation’s time zone'}. Entries cannot be edited or deleted.`}
       />
-      <Paper withBorder p="md">
-        <Stack>
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }}>
-            <Select
-              placeholder="All activity"
-              data={CUSTOMER_CATEGORIES.map((c) => ({
-                value: c.key,
-                label: c.label,
-              }))}
-              value={category}
-              onChange={(value) => {
-                setCategory(value);
-                setPage(1);
-              }}
-              clearable
-              aria-label="Filter by category"
-            />
-            <TextInput
-              placeholder="Search details or person"
-              leftSection={<IconSearch size={16} />}
+      <TableCard
+        toolbar={
+          <>
+            <SearchInput
               value={search}
-              onChange={(event) => {
-                setSearch(event.currentTarget.value);
-                setPage(1);
-              }}
-              aria-label="Search audit history"
-            />
-            <DateInput
-              placeholder="From date"
-              aria-label="From date"
-              valueFormat="D MMM YYYY"
-              leftSection={<IconCalendar size={16} />}
-              clearable
-              maxDate={to || undefined}
-              value={from || null}
               onChange={(value) => {
-                setFrom(value ?? '');
+                setSearch(value);
                 setPage(1);
               }}
+              placeholder="Search details or person"
+              label="Search audit history"
             />
-            <DateInput
-              placeholder="To date"
-              aria-label="To date"
-              valueFormat="D MMM YYYY"
-              leftSection={<IconCalendar size={16} />}
-              clearable
-              minDate={from || undefined}
-              value={to || null}
-              onChange={(value) => {
-                setTo(value ?? '');
-                setPage(1);
+            <FilterButton
+              count={applied}
+              onOpen={() => {
+                setDraft({ category, from, to });
+                panel.open();
               }}
+              onClear={() => applyFilters(NO_FILTERS)}
             />
-          </SimpleGrid>
-          {filtered && (
-            <Group>
-              <Button
-                variant="subtle"
-                size="compact-sm"
-                leftSection={<IconFilterOff size={14} />}
-                onClick={reset}
-              >
-                Clear all filters
-              </Button>
-            </Group>
-          )}
-          {error ? (
-            <ErrorAlert error={error as ApiError} />
-          ) : (
-            <DataTable
-              columns={columns}
-              rows={data?.items}
-              rowKey={(event) => event.id}
-              loading={isFetching}
-              onRowClick={setOpen}
-              pagination={
-                data && {
-                  page,
-                  pageSize: PAGE_SIZE,
-                  total: data.total,
-                  onChange: setPage,
+          </>
+        }
+      >
+        {error ? (
+          <ErrorAlert error={error as ApiError} />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={data?.items}
+            rowKey={(event) => event.id}
+            loading={isFetching}
+            onRowClick={setOpen}
+            pagination={
+              data && {
+                page,
+                pageSize: PAGE_SIZE,
+                total: data.total,
+                onChange: setPage,
+              }
+            }
+            empty={
+              <EmptyState
+                title="No matching activity"
+                message={filtered ? 'Try widening the filters.' : undefined}
+                action={
+                  filtered && (
+                    <Button variant="light" onClick={reset}>
+                      Clear filters
+                    </Button>
+                  )
                 }
-              }
-              empty={
-                <EmptyState
-                  title="No matching activity"
-                  message={filtered ? 'Try widening the filters.' : undefined}
+              />
+            }
+          />
+        )}
+      </TableCard>
+
+      <FilterPanel
+        opened={panelOpen}
+        onClose={panel.close}
+        onApply={() => {
+          applyFilters(draft);
+          panel.close();
+        }}
+        onClear={() => {
+          applyFilters(NO_FILTERS);
+          panel.close();
+        }}
+        sections={[
+          {
+            key: 'category',
+            label: 'Activity',
+            count: draft.category ? 1 : 0,
+            content: (
+              <Select
+                placeholder="All activity"
+                data={CUSTOMER_CATEGORIES.map((c) => ({
+                  value: c.key,
+                  label: c.label,
+                }))}
+                value={draft.category}
+                onChange={(value) =>
+                  setDraft((current) => ({ ...current, category: value }))
+                }
+                clearable
+                aria-label="Filter by activity"
+              />
+            ),
+          },
+          {
+            key: 'dates',
+            label: 'Date range',
+            count: (draft.from ? 1 : 0) + (draft.to ? 1 : 0),
+            content: (
+              <>
+                <DateInput
+                  label="From"
+                  placeholder="Any date"
+                  valueFormat="D MMM YYYY"
+                  leftSection={<IconCalendar size={16} />}
+                  clearable
+                  maxDate={draft.to || undefined}
+                  value={draft.from || null}
+                  onChange={(value) =>
+                    setDraft((current) => ({ ...current, from: value ?? '' }))
+                  }
                 />
-              }
-            />
-          )}
-        </Stack>
-      </Paper>
+                <DateInput
+                  label="To"
+                  placeholder="Any date"
+                  valueFormat="D MMM YYYY"
+                  leftSection={<IconCalendar size={16} />}
+                  clearable
+                  minDate={draft.from || undefined}
+                  value={draft.to || null}
+                  onChange={(value) =>
+                    setDraft((current) => ({ ...current, to: value ?? '' }))
+                  }
+                />
+              </>
+            ),
+          },
+        ]}
+      />
 
       <Modal
         opened={!!open}

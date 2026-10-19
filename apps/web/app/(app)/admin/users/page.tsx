@@ -1,18 +1,21 @@
 'use client';
 
 import {
-  Badge,
   Button,
   Group,
-  Paper,
-  Select,
+  MultiSelect,
   SimpleGrid,
   Stack,
   Text,
-  TextInput,
 } from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
-import { IconFilterOff, IconPlus, IconSearch } from '@tabler/icons-react';
+import {
+  IconLock,
+  IconPlus,
+  IconUserCheck,
+  IconUserOff,
+  IconUsers,
+} from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
@@ -24,39 +27,57 @@ import {
 } from '@corecheck/shared';
 import {
   type Column,
+  COLORS,
   DataTable,
   EmptyState,
   ErrorAlert,
+  FilterButton,
+  FilterPanel,
   formatDateTime,
+  Pill,
+  SearchInput,
   type SortState,
+  StatCard,
+  TableCard,
   UserStatusBadge,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../../components/AppPageHeader';
-import { CreateUserModal } from '../../../../components/users/CreateUserModal';
 import { useSeatUsageQuery, useUsersQuery } from '../../../../lib/api';
 import { useRoleOptions, useScopeOptions } from '../../../../lib/options';
 import { useSession } from '../../../../lib/session';
 
 const PAGE_SIZE = 25;
-const NO_FILTERS = {
+
+interface Filters {
+  status: UserStatus | null;
+  roleId: string | null;
+  siteId: string | null;
+  teamId: string | null;
+  disciplineId: string | null;
+}
+const NO_FILTERS: Filters = {
   status: null,
   roleId: null,
   siteId: null,
   teamId: null,
   disciplineId: null,
-} as const;
-type Filters = { [K in keyof typeof NO_FILTERS]: string | null };
+};
 
 const names = (items: { name: string }[]) =>
   items.map((item) => item.name).join(', ') || '—';
 
+/** Totals for the status cards, read from the same list the table uses. */
+const useStatusCount = (status?: UserStatus) =>
+  useUsersQuery({ page: 1, pageSize: 1, status }).data?.total;
+
 export default function UsersPage() {
   const router = useRouter();
   const { me, can } = useSession();
-  const [creating, { open: openCreate, close: closeCreate }] = useDisclosure();
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 300);
-  const [filters, setFilters] = useState<Filters>({ ...NO_FILTERS });
+  const [filters, setFilters] = useState<Filters>(NO_FILTERS);
+  const [draft, setDraft] = useState<Filters>(NO_FILTERS);
+  const [panelOpen, panel] = useDisclosure();
   const [sort, setSort] = useState<SortState>({ field: 'name', order: 'asc' });
   const [page, setPage] = useState(1);
 
@@ -64,7 +85,7 @@ export default function UsersPage() {
     page,
     pageSize: PAGE_SIZE,
     search: debouncedSearch || undefined,
-    status: (filters.status as UserStatus | null) ?? undefined,
+    status: filters.status ?? undefined,
     roleId: filters.roleId ?? undefined,
     siteId: filters.siteId ?? undefined,
     teamId: filters.teamId ?? undefined,
@@ -73,20 +94,50 @@ export default function UsersPage() {
     order: sort.order,
   });
   const { data: seats } = useSeatUsageQuery();
+  const counts = {
+    all: useStatusCount(),
+    active: useStatusCount('active'),
+    locked: useStatusCount('locked'),
+    inactive: useStatusCount('inactive'),
+  };
   const roles = useRoleOptions();
   const scope = useScopeOptions();
   const tz = me?.organisation.timeZone;
 
-  const setFilter = (key: keyof Filters) => (value: string | null) => {
-    setFilters((current) => ({ ...current, [key]: value }));
+  const applied = Object.values(filters).filter(Boolean).length;
+  const filtered = !!search || applied > 0;
+  const apply = (next: Filters) => {
+    setFilters(next);
+    setDraft(next);
     setPage(1);
   };
-  const filtered = !!search || Object.values(filters).some(Boolean);
-  const clearFilters = () => {
+  const clearAll = () => {
     setSearch('');
-    setFilters({ ...NO_FILTERS });
-    setPage(1);
+    apply(NO_FILTERS);
   };
+
+  // Each filter takes one value; a one-item multi-select keeps the panel
+  // reading like CoreStock's and can be cleared in place.
+  const single = (
+    key: keyof Filters,
+    options: { value: string; label: string }[],
+    label: string,
+  ) => (
+    <MultiSelect
+      data={options}
+      value={draft[key] ? [draft[key]!] : []}
+      onChange={(values) =>
+        setDraft((current) => ({
+          ...current,
+          [key]: values.at(-1) ?? null,
+        }))
+      }
+      placeholder="Any"
+      searchable
+      clearable
+      aria-label={`Filter by ${label}`}
+    />
+  );
 
   const columns: Column<UserSummary>[] = [
     {
@@ -95,10 +146,15 @@ export default function UsersPage() {
       sortField: 'name',
       render: (user) => (
         <Stack gap={0}>
-          <Text fw={600} size="sm">
+          <Text
+            fw={600}
+            size="sm"
+            c={COLORS.title}
+            style={{ whiteSpace: 'nowrap' }}
+          >
             {user.firstName} {user.lastName}
           </Text>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" c={COLORS.muted}>
             {user.username}
           </Text>
         </Stack>
@@ -108,20 +164,17 @@ export default function UsersPage() {
       key: 'role',
       header: 'Role',
       sortField: 'role',
+      width: 200,
       render: (user) => (
         <Group gap={6} wrap="nowrap">
-          <Text size="sm">{user.role.name}</Text>
-          {!user.role.standardKey && (
-            <Badge size="xs" variant="outline">
-              Custom
-            </Badge>
-          )}
+          <Pill>{user.role.name}</Pill>
+          {!user.role.standardKey && <Pill tone="info">Custom</Pill>}
         </Group>
       ),
     },
     {
       key: 'sites',
-      header: 'Sites',
+      header: 'Site Access',
       render: (user) => <Text size="sm">{names(user.sites)}</Text>,
     },
     {
@@ -130,18 +183,44 @@ export default function UsersPage() {
       render: (user) => <Text size="sm">{names(user.teams)}</Text>,
     },
     {
+      key: 'lastLoginAt',
+      header: 'Last Login',
+      sortField: 'lastLoginAt',
+      width: 170,
+      render: (user) => (
+        <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+          {formatDateTime(user.lastLoginAt, tz)}
+        </Text>
+      ),
+    },
+    {
       key: 'status',
       header: 'Status',
       sortField: 'status',
+      width: 120,
       render: (user) => <UserStatusBadge status={user.status} />,
     },
+  ];
+
+  const cards: Array<{
+    label: string;
+    value: number | undefined;
+    status: UserStatus | null;
+    icon: typeof IconUsers;
+  }> = [
+    { label: 'Total Users', value: counts.all, status: null, icon: IconUsers },
     {
-      key: 'lastLoginAt',
-      header: 'Last sign-in',
-      sortField: 'lastLoginAt',
-      render: (user) => (
-        <Text size="sm">{formatDateTime(user.lastLoginAt, tz)}</Text>
-      ),
+      label: 'Active',
+      value: counts.active,
+      status: 'active',
+      icon: IconUserCheck,
+    },
+    { label: 'Locked', value: counts.locked, status: 'locked', icon: IconLock },
+    {
+      label: 'Inactive',
+      value: counts.inactive,
+      status: 'inactive',
+      icon: IconUserOff,
     },
   ];
 
@@ -158,150 +237,161 @@ export default function UsersPage() {
           can('users.manage') && (
             <Button
               leftSection={<IconPlus size={16} />}
-              onClick={openCreate}
+              onClick={() => router.push('/admin/users/new')}
               disabled={seats?.available === 0}
             >
-              Add user
+              Add New User
             </Button>
           )
         }
       />
       {seats?.available === 0 && can('users.manage') && (
-        <Text c="red" size="sm" mb="sm">
+        <Text c="red.7" size="sm" mb="md" fw={500}>
           All seats are in use. Deactivate a user or contact CoreCheck to add
           seats.
         </Text>
       )}
 
-      <Paper withBorder p="md">
-        <Stack gap="md">
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
-            <TextInput
-              placeholder="Search name, username or email"
-              leftSection={<IconSearch size={16} />}
+      <SimpleGrid cols={{ base: 2, xl: 4 }} mb="lg" spacing="sm">
+        {cards.map((card) => (
+          <StatCard
+            key={card.label}
+            label={card.label}
+            value={card.value ?? '—'}
+            icon={<card.icon size={20} />}
+            selected={filters.status === card.status}
+            onClick={() => apply({ ...filters, status: card.status })}
+          />
+        ))}
+      </SimpleGrid>
+
+      <TableCard
+        toolbar={
+          <>
+            <SearchInput
               value={search}
-              onChange={(event) => {
-                setSearch(event.currentTarget.value);
+              onChange={(value) => {
+                setSearch(value);
                 setPage(1);
               }}
-              aria-label="Search users"
+              placeholder="Search name, username or email"
+              label="Search users"
             />
-            <Select
-              placeholder="Any status"
-              data={USER_STATUSES.map((status) => ({
+            <FilterButton
+              count={applied}
+              onOpen={() => {
+                setDraft(filters);
+                panel.open();
+              }}
+              onClear={() => apply(NO_FILTERS)}
+            />
+          </>
+        }
+      >
+        {error ? (
+          <ErrorAlert error={error as ApiError} />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={data?.items}
+            rowKey={(user) => user.id}
+            loading={isFetching}
+            sort={sort}
+            onSortChange={(next) => {
+              setSort(next);
+              setPage(1);
+            }}
+            onRowClick={(user) => router.push(`/admin/users/${user.id}`)}
+            pagination={
+              data && {
+                page,
+                pageSize: PAGE_SIZE,
+                total: data.total,
+                onChange: setPage,
+              }
+            }
+            empty={
+              <EmptyState
+                title={
+                  filtered
+                    ? 'No users match these filters'
+                    : 'No users in your scope yet'
+                }
+                message={
+                  filtered
+                    ? 'Try removing a filter or searching for something else.'
+                    : 'Users you can see share one of your sites or teams.'
+                }
+                action={
+                  filtered ? (
+                    <Button variant="light" onClick={clearAll}>
+                      Clear filters
+                    </Button>
+                  ) : (
+                    can('users.manage') && (
+                      <Button onClick={() => router.push('/admin/users/new')}>
+                        Add a user
+                      </Button>
+                    )
+                  )
+                }
+              />
+            }
+          />
+        )}
+      </TableCard>
+
+      <FilterPanel
+        opened={panelOpen}
+        onClose={panel.close}
+        onApply={() => {
+          apply(draft);
+          panel.close();
+        }}
+        onClear={() => {
+          apply(NO_FILTERS);
+          panel.close();
+        }}
+        sections={[
+          {
+            key: 'status',
+            label: 'Status',
+            count: draft.status ? 1 : 0,
+            content: single(
+              'status',
+              USER_STATUSES.map((status) => ({
                 value: status,
                 label: USER_STATUS_LABELS[status],
-              }))}
-              value={filters.status}
-              onChange={setFilter('status')}
-              clearable
-              aria-label="Filter by status"
-            />
-            <Select
-              placeholder="Any role"
-              data={roles}
-              value={filters.roleId}
-              onChange={setFilter('roleId')}
-              clearable
-              searchable
-              aria-label="Filter by role"
-            />
-            <Select
-              placeholder="Any site"
-              data={scope.sites}
-              value={filters.siteId}
-              onChange={setFilter('siteId')}
-              clearable
-              searchable
-              aria-label="Filter by site"
-            />
-            <Select
-              placeholder="Any team"
-              data={scope.teams}
-              value={filters.teamId}
-              onChange={setFilter('teamId')}
-              clearable
-              searchable
-              aria-label="Filter by team"
-            />
-            <Select
-              placeholder="Any discipline"
-              data={scope.disciplines}
-              value={filters.disciplineId}
-              onChange={setFilter('disciplineId')}
-              clearable
-              searchable
-              aria-label="Filter by discipline"
-            />
-          </SimpleGrid>
-          {filtered && (
-            <Group>
-              <Button
-                variant="subtle"
-                size="compact-sm"
-                leftSection={<IconFilterOff size={14} />}
-                onClick={clearFilters}
-              >
-                Clear all filters
-              </Button>
-            </Group>
-          )}
-
-          {error ? (
-            <ErrorAlert error={error as ApiError} />
-          ) : (
-            <DataTable
-              columns={columns}
-              rows={data?.items}
-              rowKey={(user) => user.id}
-              loading={isFetching}
-              sort={sort}
-              onSortChange={(next) => {
-                setSort(next);
-                setPage(1);
-              }}
-              onRowClick={(user) => router.push(`/admin/users/${user.id}`)}
-              pagination={
-                data && {
-                  page,
-                  pageSize: PAGE_SIZE,
-                  total: data.total,
-                  onChange: setPage,
-                }
-              }
-              empty={
-                <EmptyState
-                  title={
-                    filtered
-                      ? 'No users match these filters'
-                      : 'No users in your scope yet'
-                  }
-                  message={
-                    filtered
-                      ? 'Try removing a filter or searching for something else.'
-                      : 'Users you can see share one of your sites or teams.'
-                  }
-                  action={
-                    filtered ? (
-                      <Button variant="light" onClick={clearFilters}>
-                        Clear filters
-                      </Button>
-                    ) : (
-                      can('users.manage') && (
-                        <Button onClick={openCreate}>Add a user</Button>
-                      )
-                    )
-                  }
-                />
-              }
-            />
-          )}
-        </Stack>
-      </Paper>
-
-      {can('users.manage') && (
-        <CreateUserModal opened={creating} onClose={closeCreate} />
-      )}
+              })),
+              'status',
+            ),
+          },
+          {
+            key: 'role',
+            label: 'Role',
+            count: draft.roleId ? 1 : 0,
+            content: single('roleId', roles, 'role'),
+          },
+          {
+            key: 'site',
+            label: 'Site',
+            count: draft.siteId ? 1 : 0,
+            content: single('siteId', scope.sites, 'site'),
+          },
+          {
+            key: 'team',
+            label: 'Team',
+            count: draft.teamId ? 1 : 0,
+            content: single('teamId', scope.teams, 'team'),
+          },
+          {
+            key: 'discipline',
+            label: 'Discipline',
+            count: draft.disciplineId ? 1 : 0,
+            content: single('disciplineId', scope.disciplines, 'discipline'),
+          },
+        ]}
+      />
     </>
   );
 }

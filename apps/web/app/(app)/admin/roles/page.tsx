@@ -1,11 +1,9 @@
 'use client';
 
 import {
-  Badge,
   Button,
   Group,
   Modal,
-  Paper,
   Select,
   Stack,
   Switch,
@@ -29,8 +27,11 @@ import {
   DataTable,
   EmptyState,
   ErrorAlert,
+  Pill,
   plural,
+  SearchInput,
   showApiErrors,
+  TableCard,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../../components/AppPageHeader';
 import {
@@ -126,12 +127,17 @@ export default function RolesPage() {
   const router = useRouter();
   const { can } = useSession();
   const [showArchived, setShowArchived] = useState(false);
+  const [search, setSearch] = useState('');
   const [creating, { open, close }] = useDisclosure();
   const {
     data: roles,
     isFetching,
     error,
   } = useRolesQuery({ includeArchived: showArchived });
+  const term = search.trim().toLowerCase();
+  const visibleRoles = term
+    ? roles?.filter((role) => role.name.toLowerCase().includes(term))
+    : roles;
 
   const columns: Column<RoleSummary>[] = [
     {
@@ -156,15 +162,11 @@ export default function RolesPage() {
       header: 'Type',
       width: 220,
       render: (role) => (
-        <Group gap={6}>
-          <Badge variant="outline" size="sm">
+        <Group gap={6} wrap="nowrap">
+          <Pill tone={role.isStandard ? 'neutral' : 'info'}>
             {role.isStandard ? 'Standard' : 'Custom'}
-          </Badge>
-          {role.privileged && (
-            <Badge variant="light" color="orange" size="sm">
-              Privileged
-            </Badge>
-          )}
+          </Pill>
+          {role.privileged && <Pill tone="warning">Privileged</Pill>}
         </Group>
       ),
     },
@@ -202,37 +204,45 @@ export default function RolesPage() {
         actions={
           can('roles.manage') && (
             <Button leftSection={<IconPlus size={16} />} onClick={open}>
-              New role
+              Add New Role
             </Button>
           )
         }
       />
-      <Paper withBorder p="md">
-        <Stack>
-          <Switch
-            label="Show archived roles"
-            checked={showArchived}
-            onChange={(event) => setShowArchived(event.currentTarget.checked)}
-          />
-          {error ? (
-            <ErrorAlert error={error as ApiError} />
-          ) : (
-            <DataTable
-              columns={columns}
-              rows={roles}
-              rowKey={(role) => role.id}
-              loading={isFetching}
-              onRowClick={(role) => router.push(`/admin/roles/${role.id}`)}
-              empty={<EmptyState title="No roles" />}
+      <TableCard
+        toolbar={
+          <>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search roles"
             />
-          )}
-          {roles && (
-            <Text size="xs" c="dimmed">
-              {plural(roles.length, 'role')}
-            </Text>
-          )}
-        </Stack>
-      </Paper>
+            <Switch
+              label="Show archived roles"
+              checked={showArchived}
+              onChange={(event) => setShowArchived(event.currentTarget.checked)}
+            />
+          </>
+        }
+      >
+        {error ? (
+          <ErrorAlert error={error as ApiError} />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={visibleRoles}
+            rowKey={(role) => role.id}
+            loading={isFetching}
+            onRowClick={(role) => router.push(`/admin/roles/${role.id}`)}
+            empty={<EmptyState title="No roles" />}
+          />
+        )}
+        {roles && (
+          <Text size="sm" c="dimmed" px="md" pb="md">
+            {plural(visibleRoles?.length ?? 0, 'role')}
+          </Text>
+        )}
+      </TableCard>
       {can('roles.manage') && roles && (
         <NewRoleModal opened={creating} onClose={close} roles={roles} />
       )}

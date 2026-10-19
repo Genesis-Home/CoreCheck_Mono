@@ -115,21 +115,20 @@ test('Milestone 1: provision an organisation, sign in with a temporary PIN, admi
   await typePin(web, 'New PIN', '258147');
   await typePin(web, 'Confirm new PIN', '258147');
   await web.getByRole('button', { name: 'Set my PIN' }).click();
-  await expect(
-    web.getByRole('heading', { name: 'Welcome, Erin' }),
-  ).toBeVisible();
+  await expect(web.getByRole('heading', { name: /, Erin/ })).toBeVisible();
 
   await web.getByRole('link', { name: 'Users' }).first().click();
   await expect(web.getByRole('heading', { name: 'Users' })).toBeVisible();
   await expect(web.getByText('1 of 10 licensed seats in use')).toBeVisible();
-  await web.getByRole('button', { name: 'Add user' }).click();
+  await web.getByRole('button', { name: 'Add New User' }).click();
+  await expect(web.getByRole('heading', { name: 'New user' })).toBeVisible();
   await web.getByLabel('First name').fill('Olu');
   await web.getByLabel('Last name').fill('Operative');
-  await web.getByRole('dialog').getByRole('combobox', { name: 'Role' }).click();
+  await web.getByRole('combobox', { name: 'Role' }).click();
   await web.getByRole('option', { name: 'Operative' }).click();
   await web.getByRole('button', { name: 'Create user' }).click();
   await expect(web.getByText('Shown only once')).toBeVisible();
-  await web.getByRole('button', { name: 'Done' }).click();
+  await web.getByRole('button', { name: 'Back to users' }).click();
   await expect(web.getByText('Olu Operative')).toBeVisible();
 
   await web.getByRole('link', { name: 'Roles' }).click();
@@ -151,14 +150,15 @@ test('Milestone 1: provision an organisation, sign in with a temporary PIN, admi
 
   // --------------------------------- suspension ends the customer session
   await staff
-    .getByRole('navigation')
+    .getByRole('navigation', { name: 'Main menu' })
     .getByRole('link', { name: 'Organisations' })
     .click();
   await staff
     .getByPlaceholder('Search name, contact or industry')
     .fill(orgName);
   await staff.getByText(orgName).click();
-  await staff.getByRole('button', { name: 'Suspend' }).click();
+  await expect(staff.getByRole('heading', { name: orgName })).toBeVisible();
+  await staff.getByRole('button', { name: 'Suspend', exact: true }).click();
   await staff
     .getByLabel('Reason (recorded in the audit trail)')
     .fill('E2E test');

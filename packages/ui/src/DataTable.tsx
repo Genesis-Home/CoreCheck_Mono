@@ -1,4 +1,6 @@
 import {
+  Box,
+  Button,
   Center,
   Group,
   Loader,
@@ -9,11 +11,14 @@ import {
   UnstyledButton,
 } from '@mantine/core';
 import {
+  IconArrowLeft,
+  IconArrowRight,
   IconChevronDown,
   IconChevronUp,
   IconSelector,
 } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
+import { COLORS } from './theme';
 
 export interface Column<T> {
   key: string;
@@ -64,9 +69,9 @@ const SortIcon = ({
 };
 
 /**
- * Registers and work lists (LST-001..005): sortable columns, pagination and
- * an explained empty state. Wide tables scroll inside themselves on small
- * screens instead of stretching the page.
+ * Registers and work lists (LST-001..005) in the CoreStock style: a bordered
+ * table with a pale heading row, then "Showing 1 to 10 of 42" with Previous
+ * and Next. Wide tables scroll inside themselves on small screens.
  */
 export function DataTable<T>({
   columns,
@@ -81,12 +86,12 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (loading && !rows) {
     return (
-      <Center py="xl">
+      <Center py={48}>
         <Loader />
       </Center>
     );
   }
-  if (!rows || rows.length === 0) return <>{empty}</>;
+  if (!rows || rows.length === 0) return <Box p="md">{empty}</Box>;
 
   const header = (column: Column<T>) => {
     if (!column.sortField || !onSortChange || !sort) return column.header;
@@ -100,12 +105,7 @@ export function DataTable<T>({
           })
         }
         aria-label={`Sort by ${column.header}`}
-        style={{
-          font: 'inherit',
-          color: 'inherit',
-          letterSpacing: 'inherit',
-          textTransform: 'inherit',
-        }}
+        style={{ font: 'inherit', color: 'inherit' }}
       >
         <Group
           gap={4}
@@ -125,6 +125,9 @@ export function DataTable<T>({
     );
   };
 
+  const pages = pagination
+    ? Math.max(1, Math.ceil(pagination.total / pagination.pageSize))
+    : 1;
   const first = pagination
     ? (pagination.page - 1) * pagination.pageSize + 1
     : 1;
@@ -134,63 +137,103 @@ export function DataTable<T>({
 
   return (
     <>
-      <ScrollArea type="auto" offsetScrollbars>
-        <Table
-          highlightOnHover={!!onRowClick}
-          verticalSpacing="sm"
-          horizontalSpacing="md"
-          miw={640}
-          style={{ opacity: loading ? 0.6 : 1 }}
-        >
-          <Table.Thead>
-            <Table.Tr>
-              {columns.map((column) => (
-                <Table.Th
-                  key={column.key}
-                  ta={column.align}
-                  w={column.width}
-                  aria-sort={
-                    sort && column.sortField === sort.field
-                      ? sort.order === 'asc'
-                        ? 'ascending'
-                        : 'descending'
-                      : undefined
-                  }
-                >
-                  {header(column)}
-                </Table.Th>
-              ))}
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {rows.map((row) => (
-              <Table.Tr
-                key={rowKey(row)}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                style={onRowClick ? { cursor: 'pointer' } : undefined}
-              >
+      <Box
+        m="md"
+        style={{
+          border: `1px solid ${COLORS.borderStrong}`,
+          borderRadius: 12,
+          overflow: 'hidden',
+        }}
+      >
+        <ScrollArea type="auto">
+          <Table
+            highlightOnHover={!!onRowClick}
+            highlightOnHoverColor="#F9FAFB"
+            verticalSpacing={14}
+            horizontalSpacing="md"
+            miw={680}
+            style={{ opacity: loading ? 0.6 : 1 }}
+          >
+            <Table.Thead>
+              <Table.Tr>
                 {columns.map((column) => (
-                  <Table.Td key={column.key} ta={column.align}>
-                    {column.render(row)}
-                  </Table.Td>
+                  <Table.Th
+                    key={column.key}
+                    ta={column.align}
+                    w={column.width}
+                    aria-sort={
+                      sort && column.sortField === sort.field
+                        ? sort.order === 'asc'
+                          ? 'ascending'
+                          : 'descending'
+                        : undefined
+                    }
+                  >
+                    {header(column)}
+                  </Table.Th>
                 ))}
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      </ScrollArea>
+            </Table.Thead>
+            <Table.Tbody>
+              {rows.map((row) => (
+                <Table.Tr
+                  key={rowKey(row)}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  style={onRowClick ? { cursor: 'pointer' } : undefined}
+                >
+                  {columns.map((column) => (
+                    <Table.Td key={column.key} ta={column.align}>
+                      {column.render(row)}
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </ScrollArea>
+      </Box>
       {pagination && (
-        <Group justify="space-between" mt="md" wrap="wrap">
-          <Text size="sm" c="dimmed">
-            Showing {first}–{last} of {pagination.total}
+        <Group
+          justify="space-between"
+          px="md"
+          py="sm"
+          wrap="wrap"
+          style={{ borderTop: `1px solid ${COLORS.borderStrong}` }}
+        >
+          <Text size="sm" c={COLORS.muted} fw={500}>
+            Showing {first} to {last} of {pagination.total}
           </Text>
-          {pagination.total > pagination.pageSize && (
-            <Pagination
-              total={Math.ceil(pagination.total / pagination.pageSize)}
-              value={pagination.page}
-              onChange={pagination.onChange}
-              size="sm"
-            />
+          {pages > 1 && (
+            <Group gap="xs" wrap="nowrap">
+              <Button
+                variant="default"
+                size="xs"
+                h={34}
+                leftSection={<IconArrowLeft size={15} />}
+                disabled={pagination.page <= 1}
+                onClick={() => pagination.onChange(pagination.page - 1)}
+              >
+                Previous
+              </Button>
+              <Pagination
+                total={pages}
+                value={pagination.page}
+                onChange={pagination.onChange}
+                size="sm"
+                withControls={false}
+                visibleFrom="sm"
+              />
+              <Button
+                variant="default"
+                size="xs"
+                h={34}
+                rightSection={<IconArrowRight size={15} />}
+                disabled={pagination.page >= pages}
+                onClick={() => pagination.onChange(pagination.page + 1)}
+              >
+                Next
+              </Button>
+            </Group>
           )}
         </Group>
       )}

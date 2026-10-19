@@ -1,17 +1,7 @@
 'use client';
 
-import {
-  Code,
-  Modal,
-  Paper,
-  Select,
-  SimpleGrid,
-  Stack,
-  Text,
-  TextInput,
-} from '@mantine/core';
-import { useDebouncedValue } from '@mantine/hooks';
-import { IconSearch } from '@tabler/icons-react';
+import { Code, Modal, Select, Stack, Text } from '@mantine/core';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { useState } from 'react';
 import {
   type ApiError,
@@ -24,7 +14,11 @@ import {
   DataTable,
   EmptyState,
   ErrorAlert,
+  FilterButton,
+  FilterPanel,
   formatDateTime,
+  SearchInput,
+  TableCard,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import { useAuditEventsQuery } from '../../../lib/api';
@@ -38,6 +32,8 @@ export default function PlatformAuditPage() {
   const [debounced] = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState<AuditEvent | null>(null);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [panelOpen, panel] = useDisclosure();
   const { data, isFetching, error } = useAuditEventsQuery({
     page,
     pageSize: PAGE_SIZE,
@@ -95,56 +91,88 @@ export default function PlatformAuditPage() {
         title="Audit trail"
         description="Staff sign-ins and every provisioning action. Entries cannot be edited or deleted."
       />
-      <Paper withBorder p="md">
-        <Stack>
-          <SimpleGrid cols={{ base: 1, sm: 2 }}>
-            <Select
-              placeholder="All activity"
-              data={AUDIT_CATEGORIES.map((c) => ({
-                value: c.key,
-                label: c.label,
-              }))}
-              value={category}
-              onChange={(value) => {
-                setCategory(value);
-                setPage(1);
-              }}
-              clearable
-              aria-label="Filter by category"
-            />
-            <TextInput
-              placeholder="Search details or person"
-              leftSection={<IconSearch size={16} />}
+      <TableCard
+        toolbar={
+          <>
+            <SearchInput
               value={search}
-              onChange={(event) => {
-                setSearch(event.currentTarget.value);
+              onChange={(value) => {
+                setSearch(value);
                 setPage(1);
               }}
-              aria-label="Search audit trail"
+              placeholder="Search details or person"
+              label="Search audit trail"
             />
-          </SimpleGrid>
-          {error ? (
-            <ErrorAlert error={error as ApiError} />
-          ) : (
-            <DataTable
-              columns={columns}
-              rows={data?.items}
-              rowKey={(event) => event.id}
-              loading={isFetching}
-              onRowClick={setOpen}
-              pagination={
-                data && {
-                  page,
-                  pageSize: PAGE_SIZE,
-                  total: data.total,
-                  onChange: setPage,
-                }
+            <FilterButton
+              count={category ? 1 : 0}
+              onOpen={() => {
+                setDraft(category);
+                panel.open();
+              }}
+              onClear={() => {
+                setCategory(null);
+                setPage(1);
+              }}
+            />
+          </>
+        }
+      >
+        {error ? (
+          <ErrorAlert error={error as ApiError} />
+        ) : (
+          <DataTable
+            columns={columns}
+            rows={data?.items}
+            rowKey={(event) => event.id}
+            loading={isFetching}
+            onRowClick={setOpen}
+            pagination={
+              data && {
+                page,
+                pageSize: PAGE_SIZE,
+                total: data.total,
+                onChange: setPage,
               }
-              empty={<EmptyState title="No matching activity" />}
-            />
-          )}
-        </Stack>
-      </Paper>
+            }
+            empty={<EmptyState title="No matching activity" />}
+          />
+        )}
+      </TableCard>
+      <FilterPanel
+        opened={panelOpen}
+        onClose={panel.close}
+        onApply={() => {
+          setCategory(draft);
+          setPage(1);
+          panel.close();
+        }}
+        onClear={() => {
+          setCategory(null);
+          setDraft(null);
+          setPage(1);
+          panel.close();
+        }}
+        sections={[
+          {
+            key: 'category',
+            label: 'Activity',
+            count: draft ? 1 : 0,
+            content: (
+              <Select
+                placeholder="All activity"
+                data={AUDIT_CATEGORIES.map((c) => ({
+                  value: c.key,
+                  label: c.label,
+                }))}
+                value={draft}
+                onChange={setDraft}
+                clearable
+                aria-label="Filter by activity"
+              />
+            ),
+          },
+        ]}
+      />
       <Modal
         opened={!!open}
         onClose={() => setOpen(null)}

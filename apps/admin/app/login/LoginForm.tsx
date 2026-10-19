@@ -64,6 +64,7 @@ export function LoginForm() {
         <Stack>
           <TextInput
             label="Email"
+            placeholder="Enter your email"
             type="email"
             autoComplete="username"
             required
@@ -71,6 +72,7 @@ export function LoginForm() {
           />
           <PasswordInput
             label="Password"
+            placeholder="Enter your password"
             autoComplete="current-password"
             required
             {...form.getInputProps('password')}

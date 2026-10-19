@@ -2,13 +2,11 @@
 
 import {
   ActionIcon,
-  Badge,
   Button,
   Code,
   Group,
   Menu,
   Modal,
-  Paper,
   Select,
   Stack,
   Text,
@@ -44,6 +42,8 @@ import {
   formatDateTime,
   notifyError,
   showApiErrors,
+  Pill,
+  TableCard,
 } from '@corecheck/ui';
 import { AppPageHeader } from '../../../components/AppPageHeader';
 import {
@@ -166,23 +166,11 @@ export default function StaffPage() {
       header: 'Status',
       width: 240,
       render: (member) => (
-        <Group gap={4}>
-          <Badge
-            variant="light"
-            color={member.status === 'active' ? 'green' : 'gray'}
-          >
+        <Group gap={4} wrap="nowrap">
+          <Pill tone={member.status === 'active' ? 'success' : 'neutral'}>
             {member.status === 'active' ? 'Active' : 'Disabled'}
-          </Badge>
-          {member.locked && (
-            <Badge variant="light" color="red">
-              Locked
-            </Badge>
-          )}
-          {!member.mfaEnabled && (
-            <Badge variant="outline" color="orange">
-              No 2FA yet
-            </Badge>
-          )}
+          </Pill>
+          {member.locked && <Pill tone="danger">Locked</Pill>}
         </Group>
       ),
     },
@@ -272,11 +260,11 @@ export default function StaffPage() {
         description="CoreCheck staff with access to this portal. There must always be at least one active owner."
         actions={
           <Button leftSection={<IconPlus size={16} />} onClick={open}>
-            Add staff member
+            Add Staff Member
           </Button>
         }
       />
-      <Paper withBorder p="md">
+      <TableCard>
         {error ? (
           <ErrorAlert error={error as ApiError} />
         ) : (
@@ -288,7 +276,7 @@ export default function StaffPage() {
             empty={<EmptyState title="No staff" />}
           />
         )}
-      </Paper>
+      </TableCard>
       <Modal opened={adding} onClose={close} title="Add staff member">
         <form onSubmit={submit} noValidate>
           <Stack>
