@@ -2,6 +2,10 @@ import { Box, Stack, Text, Title } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { COLORS } from './theme';
 
+/** Sampled from the Figma sign-up frame. */
+const PANEL_BLUE = '#D7E1FD';
+const CIRCLE_BLUE = '#DFE5FF';
+
 /**
  * Sign-in and account-setup screens, from the CoreCheck Figma: a pale blue
  * panel with the logo, strapline and a product preview on the left, the form
@@ -23,7 +27,7 @@ export const AuthLayout = ({
     style={{
       minHeight: '100vh',
       display: 'flex',
-      backgroundColor: 'white',
+      backgroundColor: COLORS.tableHead,
       padding: 12,
       gap: 12,
     }}
@@ -31,26 +35,53 @@ export const AuthLayout = ({
     <Box
       visibleFrom="md"
       style={{
-        flex: '0 0 46%',
-        maxWidth: 760,
-        borderRadius: 20,
+        // Figma proportions: the panel is about 37% of the frame.
+        flex: '0 0 40%',
+        maxWidth: 640,
+        borderRadius: 16,
         position: 'relative',
         overflow: 'hidden',
-        background:
-          'radial-gradient(120% 80% at 0% 0%, #EEF2FF 0%, #DCE5FE 55%, #CFDBFD 100%)',
+        backgroundColor: PANEL_BLUE,
       }}
     >
-      <Box p={36}>
+      {/* The two soft circles behind the artwork, as in the Figma frame. */}
+      <Box
+        aria-hidden
+        style={{
+          position: 'absolute',
+          width: '150%',
+          aspectRatio: '1',
+          borderRadius: '50%',
+          left: '-5%',
+          top: '-48%',
+          backgroundColor: CIRCLE_BLUE,
+        }}
+      />
+      <Box
+        aria-hidden
+        style={{
+          position: 'absolute',
+          width: '130%',
+          aspectRatio: '1',
+          borderRadius: '50%',
+          left: '-55%',
+          top: '34%',
+          backgroundColor: CIRCLE_BLUE,
+        }}
+      />
+      <Box p={24} style={{ position: 'relative' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-dark.png"
           alt="CoreCheck"
-          style={{ height: 28, width: 'auto' }}
+          style={{ height: 24, width: 'auto' }}
         />
-        <Text mt={10} fz="sm" fw={500} c={COLORS.muted}>
+        <Text mt={8} fz="sm" fw={500} c={COLORS.secondaryText}>
           Inspect. Comply. Improve.
         </Text>
       </Box>
+      {/* The product preview sits 13% in from the left, runs to the right
+          edge and stops just above the foot, framed in grey. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/login-preview.png"
@@ -58,13 +89,16 @@ export const AuthLayout = ({
         aria-hidden
         style={{
           position: 'absolute',
-          left: '12%',
-          bottom: 0,
-          width: '76%',
-          maxWidth: 520,
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
-          boxShadow: '0 24px 48px rgba(30, 64, 175, 0.18)',
+          left: '13%',
+          right: 0,
+          bottom: '6%',
+          width: '87%',
+          height: 'auto',
+          border: `6px solid ${COLORS.secondaryBorder}`,
+          borderRight: 'none',
+          borderTopLeftRadius: 18,
+          borderBottomLeftRadius: 18,
+          backgroundColor: COLORS.tableHead,
         }}
       />
     </Box>
@@ -75,6 +109,8 @@ export const AuthLayout = ({
         alignItems: 'center',
         justifyContent: 'center',
         padding: '32px 20px',
+        backgroundColor: 'white',
+        borderRadius: 16,
       }}
     >
       <Stack w="100%" maw={460} gap="lg">
