@@ -8,18 +8,22 @@ import { COLORS } from './theme';
 /**
  * Digit boxes in the CoreCheck Figma style: two groups of three split by a
  * dash, entered digits in blue on a blue outline, empty boxes showing a pale
- * 0. Sizes scale with the screen so six boxes always fit.
+ * 0. The boxes share the full width of the form, like the inputs above.
  */
 const CODE_CSS = `
-.cc-code { --s: clamp(42px, 11.5vw, 62px); --g: 10px; --sep: 30px;
-  position: relative; display: inline-block; max-width: 100%; }
-.cc-code .mantine-PinInput-root { gap: var(--g); flex-wrap: nowrap; }
-.cc-code .mantine-PinInput-pinInput { width: var(--s); flex: none; }
+.cc-code { --g: 10px; --sep: 30px; position: relative; display: block;
+  width: 100%; container-type: inline-size; }
+.cc-code .mantine-PinInput-root { display: flex; gap: var(--g);
+  flex-wrap: nowrap; width: 100%; }
+.cc-code .mantine-PinInput-pinInput { flex: 1 1 0; min-width: 0; width: auto; }
+.cc-code .mantine-PinInput-pinInput, .cc-code .mantine-Input-wrapper {
+  height: auto !important; }
 .cc-code .mantine-PinInput-pinInput:nth-of-type(3) { margin-right: var(--sep); }
-.cc-code input { width: var(--s); height: var(--s); min-height: var(--s);
-  border-radius: 10px; border: 1.5px solid #E3E8EF; background: #fff;
-  font-size: calc(var(--s) * 0.5); font-weight: 500; line-height: 1;
-  color: var(--mantine-color-brand-6); padding: 0; text-align: center;
+.cc-code input { width: 100%; height: auto !important; aspect-ratio: 1;
+  max-height: 72px; border-radius: 10px; border: 1.5px solid #E3E8EF;
+  background: #fff; font-weight: 500; line-height: 1; padding: 0;
+  font-size: min(32px, calc((100cqw - 5 * var(--g) - var(--sep)) / 12));
+  color: var(--mantine-color-brand-6); text-align: center;
   transition: border-color 120ms ease, box-shadow 120ms ease; }
 .cc-code input::placeholder { color: #D0D5DD; opacity: 1; }
 .cc-code input:not(:placeholder-shown) { border-color: var(--mantine-color-brand-5); }
@@ -27,8 +31,9 @@ const CODE_CSS = `
   box-shadow: 0 0 0 3px var(--mantine-color-brand-1); outline: none; }
 .cc-code[data-error] input { border-color: var(--mantine-color-red-6); }
 .cc-code-dash { position: absolute; width: 14px; height: 2px; border-radius: 2px;
-  background: #D0D5DD; top: calc(var(--s) / 2 - 1px);
-  left: calc(3 * var(--s) + 2 * var(--g) + (var(--g) + var(--sep)) / 2 - 7px); }
+  background: #D0D5DD; top: calc(50% - 1px);
+  left: calc((100% - 5 * var(--g) - var(--sep)) / 2 + 2 * var(--g)
+    + (var(--g) + var(--sep)) / 2 - 7px); }
 `;
 
 export const CodeInput = ({
@@ -78,7 +83,7 @@ export const CodeInput = ({
         {length === 6 && <span className="cc-code-dash" aria-hidden />}
       </Box>
       {secret && (
-        <Group justify="flex-end" mt={10}>
+        <Group justify="flex-end" mt={14}>
           <UnstyledButton
             onClick={() => setShown((value) => !value)}
             aria-pressed={shown}
