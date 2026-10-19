@@ -46,18 +46,31 @@ export const AuthLayout = ({
         backgroundColor: PANEL_BLUE,
       }}
     >
-      {/* The soft circle behind the artwork: it leaves the top-left and
-          bottom-left corners in the deeper blue, as in the Figma frame. */}
+      {/* Measured from the Figma frame: a large light circle whose edge
+          leaves the top-left corner in the deeper blue, and the grey circle
+          (the designer's circle asset at 10%) low on the left. */}
       <Box
         aria-hidden
         style={{
           position: 'absolute',
-          height: '125%',
+          width: '472%',
           aspectRatio: '1',
           borderRadius: '50%',
-          left: '-4%',
-          top: '-10.5%',
+          left: '-90%',
+          top: 0,
           backgroundColor: CIRCLE_BLUE,
+        }}
+      />
+      <Box
+        aria-hidden
+        style={{
+          position: 'absolute',
+          width: '172%',
+          aspectRatio: '1',
+          borderRadius: '50%',
+          left: 0,
+          top: '29%',
+          backgroundColor: 'rgba(153, 163, 184, 0.1)',
         }}
       />
       <Box p={24} style={{ position: 'relative' }}>
@@ -72,7 +85,8 @@ export const AuthLayout = ({
         </Text>
       </Box>
       {/* The product preview at its own proportions (never stretched): 13%
-          in from the left, reaching the right edge, just above the foot. */}
+          in from the left, reaching the right edge, just above the foot. The
+          picture carries its own grey frame and rounded corners. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/login-preview.png"
@@ -84,11 +98,6 @@ export const AuthLayout = ({
           bottom: '6%',
           width: '87%',
           height: 'auto',
-          border: `6px solid ${COLORS.secondaryBorder}`,
-          borderRight: 'none',
-          borderTopLeftRadius: 16,
-          borderBottomLeftRadius: 16,
-          backgroundColor: COLORS.tableHead,
         }}
       />
     </Box>
