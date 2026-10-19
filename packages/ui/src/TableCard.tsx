@@ -30,7 +30,15 @@ export const TableCard = ({
     withBorder
     radius="lg"
     shadow="xs"
-    style={{ borderColor: COLORS.borderStrong, overflow: 'hidden' }}
+    // Grows to fill a column layout (Manage), so short lists keep the
+    // same footprint as long ones.
+    style={{
+      borderColor: COLORS.borderStrong,
+      overflow: 'hidden',
+      flex: '1 0 auto',
+      display: 'flex',
+      flexDirection: 'column',
+    }}
   >
     {toolbar && (
       <Group

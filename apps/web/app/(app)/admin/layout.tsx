@@ -95,7 +95,19 @@ export default function ManageLayout({ children }: { children: ReactNode }) {
             );
           })}
         </Box>
-        <Box style={{ flex: '1 1 600px', minWidth: 0 }}>{children}</Box>
+        {/* A column that fills the card's height, so a section's table can
+            stretch to the bottom whatever its row count. */}
+        <Box
+          style={{
+            flex: '1 1 600px',
+            minWidth: 0,
+            alignSelf: 'stretch',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          {children}
+        </Box>
       </Paper>
     </Stack>
   );

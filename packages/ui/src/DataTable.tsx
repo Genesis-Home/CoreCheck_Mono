@@ -86,12 +86,17 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (loading && !rows) {
     return (
-      <Center py={48}>
+      <Center py={48} style={{ flex: '1 0 auto' }}>
         <Loader />
       </Center>
     );
   }
-  if (!rows || rows.length === 0) return <Box p="md">{empty}</Box>;
+  if (!rows || rows.length === 0)
+    return (
+      <Center p="md" style={{ flex: '1 0 auto' }}>
+        {empty}
+      </Center>
+    );
 
   const header = (column: Column<T>) => {
     if (!column.sortField || !onSortChange || !sort) return column.header;
@@ -143,6 +148,8 @@ export function DataTable<T>({
           border: `1px solid ${COLORS.borderStrong}`,
           borderRadius: 12,
           overflow: 'hidden',
+          // The bordered table runs down to the pagination row.
+          flex: '1 0 auto',
         }}
       >
         <ScrollArea type="auto">
