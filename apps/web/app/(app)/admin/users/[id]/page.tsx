@@ -72,7 +72,6 @@ function DetailsCard({ user }: { user: UserDetail }) {
     });
     if (result.error) return showApiErrors(form, result.error as ApiError);
     form.resetDirty();
-    notifySuccess('Details saved.');
   });
 
   return (
@@ -150,9 +149,6 @@ function AccessCard({ user }: { user: UserDetail }) {
     const result = await update({ id: user.id, ...changes });
     if (result.error) return showApiErrors(form, result.error as ApiError);
     form.resetDirty(values);
-    notifySuccess(
-      'Role and access saved. They apply from the user’s next action.',
-    );
   });
 
   return (
@@ -244,10 +240,9 @@ export default function UserPage() {
     ) =>
     async () => {
       const result = await runAction({ id: user.id, action });
-      if (result.error) return notifyError(result.error as ApiError);
+      if (result.error) return;
       if (action === 'reset-pin')
         setCredentials((result.data as UserWithCredentials).credentials);
-      else notifySuccess(done);
     };
   const caps = user.capabilities;
 

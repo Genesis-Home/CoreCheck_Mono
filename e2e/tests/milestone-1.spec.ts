@@ -129,7 +129,9 @@ test('Milestone 1: provision an organisation, sign in with a temporary PIN, admi
   await web.getByRole('button', { name: 'Create user' }).click();
   await expect(web.getByText('Shown only once')).toBeVisible();
   await web.getByRole('button', { name: 'Back to users' }).click();
-  await expect(web.getByText('Olu Operative')).toBeVisible();
+  await expect(
+    web.getByRole('cell', { name: /Olu Operative/ }).first(),
+  ).toBeVisible();
 
   await web.getByRole('link', { name: 'Roles' }).click();
   for (const role of [

@@ -111,7 +111,6 @@ function EditForm({ org }: { org: OrganisationDetail }) {
       seatLimit: Number(values.seatLimit),
     });
     if (result.error) return showApiErrors(form, result.error as ApiError);
-    notifySuccess('Organisation saved.');
   });
   return (
     <OrganisationForm
@@ -162,8 +161,6 @@ export default function OrganisationPage() {
       action: pendingAction,
       reason: reason || undefined,
     });
-    if (result.error) notifyError(result.error as ApiError);
-    else notifySuccess(`${org.name} is now ${result.data.status}.`);
     setPendingAction(null);
     setReason('');
   };
@@ -320,9 +317,6 @@ export default function OrganisationPage() {
                                 orgId: org.id,
                                 userId: admin.id,
                               });
-                              if (result.error)
-                                notifyError(result.error as ApiError);
-                              else notifySuccess(`${name} can sign in again.`);
                             }}
                           >
                             Unlock
@@ -337,9 +331,7 @@ export default function OrganisationPage() {
                               orgId: org.id,
                               userId: admin.id,
                             });
-                            if (result.error)
-                              notifyError(result.error as ApiError);
-                            else
+                            if (!result.error)
                               setIssued({
                                 name,
                                 credentials: result.data.credentials,

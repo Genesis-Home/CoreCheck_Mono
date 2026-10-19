@@ -24,9 +24,7 @@ export default function AccountPage() {
               Two-factor authentication is on for your account.
             </Text>
           )}
-          <ChangePasswordForm
-            onChanged={() => notifySuccess('Your password has been changed.')}
-          />
+          <ChangePasswordForm onChanged={() => undefined} />
         </Stack>
       </Card>
     </>

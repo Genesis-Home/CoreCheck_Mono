@@ -101,7 +101,6 @@ function AreasDrawer({
                   id: area.id,
                   archived: !area.archivedAt,
                 });
-                if (result.error) notifyError(result.error as ApiError);
               }}
             >
               {area.archivedAt ? (

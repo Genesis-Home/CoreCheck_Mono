@@ -10,7 +10,8 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@corecheck/shared": "*"
+    "@corecheck/shared": "*",
+    "react-toastify": "^11.0.5"
   },
   "peerDependencies": {
     "@mantine/core": "^9.7.2",
@@ -20,7 +21,8 @@
     "@reduxjs/toolkit": "^2.13.0",
     "@tabler/icons-react": "^3.0.0",
     "axios": "^1.13.0",
-    "react": "^19.2.0"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

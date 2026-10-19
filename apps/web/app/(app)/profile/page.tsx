@@ -70,10 +70,7 @@ export default function ProfilePage() {
           <Title order={4} mb="md">
             Change PIN
           </Title>
-          <ChangePinForm
-            temporary={false}
-            onChanged={() => notifySuccess('Your PIN has been changed.')}
-          />
+          <ChangePinForm temporary={false} onChanged={() => undefined} />
         </Card>
       </SimpleGrid>
     </>

@@ -112,9 +112,6 @@ function RoleEditor({
     const result = await update({ id: role.id, ...values });
     if (result.error) return showApiErrors(form, result.error as ApiError);
     form.resetDirty(values);
-    notifySuccess(
-      'Role saved. Holders get the new permissions on their next action.',
-    );
   });
 
   return (
@@ -195,8 +192,6 @@ export default function RolePage() {
 
   const archive = (archived: boolean) => async () => {
     const result = await setArchived({ id: role.id, archived });
-    if (result.error) notifyError(result.error as ApiError);
-    else notifySuccess(archived ? 'Role archived.' : 'Role restored.');
   };
 
   return (

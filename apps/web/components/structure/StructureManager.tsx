@@ -103,14 +103,11 @@ export function StructureManager<T extends StructureItem>(props: Props<T>) {
         ? await props.onCreate(values)
         : await props.onUpdate((editing as T).id, values);
     if (result.error) return showApiErrors(form, result.error as ApiError);
-    notifySuccess(editing === 'new' ? `${noun} created.` : `${noun} saved.`);
     setEditing(null);
   });
 
   const archive = async (item: T, archived: boolean) => {
     const result = await props.onArchive(item.id, archived);
-    if (result.error) notifyError(result.error as ApiError);
-    else notifySuccess(`${item.name} ${archived ? 'archived' : 'restored'}.`);
   };
 
   const columns: Column<T>[] = [

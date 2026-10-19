@@ -118,8 +118,7 @@ export default function StaffPage() {
     onData?: (data: never) => void,
   ) => {
     const result = await promise;
-    if (result.error) notifyError(result.error as ApiError);
-    else onData?.(result.data as never);
+    if (!result.error) onData?.(result.data as never);
   };
 
   const columns: Column<StaffMember>[] = [
