@@ -31,6 +31,7 @@ import {
   showApiErrors,
   TableCard,
 } from '@corecheck/ui';
+import { useOpenFromQuery } from '../../lib/useOpenFromQuery';
 import { AppPageHeader } from '../AppPageHeader';
 
 export interface StructureItem {
@@ -94,6 +95,7 @@ export function StructureManager<T extends StructureItem>(props: Props<T>) {
     form.clearErrors();
     setEditing(item);
   };
+  useOpenFromQuery(() => open('new'));
 
   const submit = form.onSubmit(async (values) => {
     const result =

@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
+import { useOpenFromQuery } from '../../../../lib/useOpenFromQuery';
 import { IconPlus } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -129,6 +130,7 @@ export default function RolesPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [search, setSearch] = useState('');
   const [creating, { open, close }] = useDisclosure();
+  useOpenFromQuery(open);
   const {
     data: roles,
     isFetching,

@@ -14,6 +14,7 @@ import {
 } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
+import { useOpenFromQuery } from '../../../lib/useOpenFromQuery';
 import {
   IconDots,
   IconKey,
@@ -99,6 +100,7 @@ export default function StaffPage() {
   const [setActive] = useSetStaffActiveMutation();
   const [resetCredentials] = useResetStaffCredentialsMutation();
   const [adding, { open, close }] = useDisclosure();
+  useOpenFromQuery(open);
   const [issued, setIssued] = useState<StaffWithPassword | null>(null);
   const form = useForm({
     initialValues: { name: '', email: '', staffRole: 'support' as StaffRole },

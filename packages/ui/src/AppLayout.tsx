@@ -67,6 +67,7 @@ export function AppLayout({
   userMenu,
   onSignOut,
   banner,
+  headerActions,
   children,
 }: {
   nav: NavEntry[];
@@ -82,6 +83,8 @@ export function AppLayout({
   onSignOut: () => void;
   /** Notices above every page (read-only access, expiry). */
   banner?: ReactNode;
+  /** Quick actions and the notification bell, left of the account menu. */
+  headerActions?: ReactNode;
   children: ReactNode;
 }) {
   const isDesktop = useMediaQuery('(min-width: 62em)', true);
@@ -177,64 +180,72 @@ export function AppLayout({
             />
             {headerStart}
           </Group>
-          <Menu position="bottom-end" width={240} radius="md" shadow="md">
-            <Menu.Target>
-              <UnstyledButton aria-label="Account menu">
-                <Group gap="xs" wrap="nowrap">
-                  <Avatar radius="xl" size={36} color="brand" variant="filled">
+          <Group gap="sm" wrap="nowrap">
+            {headerActions}
+            <Menu position="bottom-end" width={240} radius="md" shadow="md">
+              <Menu.Target>
+                <UnstyledButton aria-label="Account menu">
+                  <Group gap="xs" wrap="nowrap">
+                    <Avatar
+                      radius="xl"
+                      size={36}
+                      color="brand"
+                      variant="filled"
+                    >
+                      {initials}
+                    </Avatar>
+                    <Stack gap={0} visibleFrom="sm">
+                      <Text size="sm" fw={600} c={COLORS.title} lh={1.3}>
+                        {userName}
+                      </Text>
+                      <Text size="xs" c={COLORS.muted} lh={1.3}>
+                        {userDetail}
+                      </Text>
+                    </Stack>
+                    <IconChevronDown size={16} color={COLORS.muted} />
+                  </Group>
+                </UnstyledButton>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Group gap="sm" p="sm" wrap="nowrap">
+                  <Avatar radius="xl" color="brand" variant="filled">
                     {initials}
                   </Avatar>
-                  <Stack gap={0} visibleFrom="sm">
-                    <Text size="sm" fw={600} c={COLORS.title} lh={1.3}>
+                  <Box style={{ minWidth: 0 }}>
+                    <Text size="sm" fw={600} truncate>
                       {userName}
                     </Text>
-                    <Text size="xs" c={COLORS.muted} lh={1.3}>
+                    <Text size="xs" c="dimmed" truncate>
                       {userDetail}
                     </Text>
-                  </Stack>
-                  <IconChevronDown size={16} color={COLORS.muted} />
+                  </Box>
                 </Group>
-              </UnstyledButton>
-            </Menu.Target>
-            <Menu.Dropdown>
-              <Group gap="sm" p="sm" wrap="nowrap">
-                <Avatar radius="xl" color="brand" variant="filled">
-                  {initials}
-                </Avatar>
-                <Box style={{ minWidth: 0 }}>
-                  <Text size="sm" fw={600} truncate>
-                    {userName}
-                  </Text>
-                  <Text size="xs" c="dimmed" truncate>
-                    {userDetail}
-                  </Text>
-                </Box>
-              </Group>
-              <Menu.Divider />
-              {userMenu.map((item) => (
+                <Menu.Divider />
+                {userMenu.map((item) => (
+                  <Menu.Item
+                    key={item.label}
+                    component={(item.href ? Link : 'button') as 'a'}
+                    href={item.href}
+                    onClick={item.onClick}
+                    leftSection={<item.icon size={17} color={COLORS.muted} />}
+                    c={COLORS.muted}
+                    fw={500}
+                  >
+                    {item.label}
+                  </Menu.Item>
+                ))}
+                <Menu.Divider />
                 <Menu.Item
-                  key={item.label}
-                  component={(item.href ? Link : 'button') as 'a'}
-                  href={item.href}
-                  onClick={item.onClick}
-                  leftSection={<item.icon size={17} color={COLORS.muted} />}
+                  leftSection={<IconLogout size={17} />}
+                  onClick={onSignOut}
                   c={COLORS.muted}
                   fw={500}
                 >
-                  {item.label}
+                  Sign out
                 </Menu.Item>
-              ))}
-              <Menu.Divider />
-              <Menu.Item
-                leftSection={<IconLogout size={17} />}
-                onClick={onSignOut}
-                c={COLORS.muted}
-                fw={500}
-              >
-                Sign out
-              </Menu.Item>
-            </Menu.Dropdown>
-          </Menu>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
         </Group>
       </AppShell.Header>
 

@@ -2,22 +2,26 @@
 
 import { Group, Text } from '@mantine/core';
 import {
+  IconBuildingPlus,
   IconBuildingSkyscraper,
+  IconUserPlus,
   IconListDetails,
   IconUserCog,
   IconUsers,
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, Suspense, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { STAFF_ROLE_LABELS } from '@corecheck/shared';
 import {
   AppLayout,
   COLORS,
   type NavEntry,
-  Pill,
+  NotificationBell,
   PageLoader,
+  Pill,
+  QuickActions,
 } from '@corecheck/ui';
 import { api, useLogoutMutation, useMeQuery } from '../lib/api';
 
@@ -84,8 +88,38 @@ export function PortalFrame({ children }: { children: ReactNode }) {
       userDetail={`${STAFF_ROLE_LABELS[me.staffRole]} · ${me.email}`}
       userMenu={[{ label: 'My account', icon: IconUserCog, href: '/account' }]}
       onSignOut={signOut}
+      headerActions={
+        <>
+          <QuickActions
+            linkComponent={Link}
+            actions={[
+              ...(me.staffRole === 'owner' || me.staffRole === 'admin'
+                ? [
+                    {
+                      label: 'New Organisation',
+                      href: '/organisations/new',
+                      icon: IconBuildingPlus,
+                    },
+                  ]
+                : []),
+              ...(me.staffRole === 'owner'
+                ? [
+                    {
+                      label: 'Add Staff Member',
+                      href: '/staff?new=1',
+                      icon: IconUserPlus,
+                    },
+                  ]
+                : []),
+            ]}
+          />
+          <NotificationBell />
+        </>
+      }
     >
-      {children}
+      <Suspense fallback={<PageLoader label="CoreCheck Admin" />}>
+        {children}
+      </Suspense>
     </AppLayout>
   );
 }

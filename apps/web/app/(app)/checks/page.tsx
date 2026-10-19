@@ -13,6 +13,7 @@ import {
 } from '@mantine/core';
 import { schemaResolver, useForm } from '@mantine/form';
 import { useDisclosure } from '@mantine/hooks';
+import { useOpenFromQuery } from '../../../lib/useOpenFromQuery';
 import { IconDeviceMobile, IconPlus, IconRefresh } from '@tabler/icons-react';
 import {
   type ApiError,
@@ -98,6 +99,7 @@ export default function ChecksPage() {
   const tz = me?.organisation.timeZone;
   const { data, isFetching, error, refetch } = usePocChecksQuery();
   const [creating, { open, close }] = useDisclosure();
+  useOpenFromQuery(open);
 
   const columns: Column<PocCheck>[] = [
     {

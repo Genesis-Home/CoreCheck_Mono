@@ -3,6 +3,12 @@
 import { Alert, Text } from '@mantine/core';
 import {
   IconCalendarExclamation,
+  IconClipboardCheck,
+  IconMapPinPlus,
+  IconShieldPlus,
+  IconTool,
+  IconUserPlus,
+  IconUsersPlus,
   IconKey,
   IconLock,
   IconSettings,
@@ -10,13 +16,16 @@ import {
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, Suspense, useEffect } from 'react';
 import {
   AppLayout,
   COLORS,
   formatDate,
   type NavEntry,
+  NotificationBell,
   PageLoader,
+  type QuickAction,
+  QuickActions,
 } from '@corecheck/ui';
 import { useDispatch } from 'react-redux';
 import { api, useLogoutMutation } from '../lib/api';
@@ -44,7 +53,7 @@ const daysUntil = (date: string, timeZone: string): number => {
 export function AppFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { me, canAny } = useSession();
+  const { me, can, canAny } = useSession();
   const [logout] = useLogoutMutation();
   const dispatch = useDispatch();
 
@@ -78,6 +87,50 @@ export function AppFrame({ children }: { children: ReactNode }) {
     href.startsWith('/admin/')
       ? pathname.startsWith('/admin/')
       : isActive(pathname, href);
+
+  // Only what this role may start (CoreStock rule: never offer a dead end).
+  const quickActions: QuickAction[] = [
+    ...(can('users.manage')
+      ? [{ label: 'Add User', href: '/admin/users/new', icon: IconUserPlus }]
+      : []),
+    ...(can('schedules.assign')
+      ? [
+          {
+            label: 'New Check',
+            href: '/checks?new=1',
+            icon: IconClipboardCheck,
+          },
+        ]
+      : []),
+    ...(can('org_structure.manage')
+      ? [
+          {
+            label: 'Add Site',
+            href: '/admin/sites?new=1',
+            icon: IconMapPinPlus,
+          },
+          {
+            label: 'Add Team',
+            href: '/admin/teams?new=1',
+            icon: IconUsersPlus,
+          },
+          {
+            label: 'Add Discipline',
+            href: '/admin/disciplines?new=1',
+            icon: IconTool,
+          },
+        ]
+      : []),
+    ...(can('roles.manage')
+      ? [
+          {
+            label: 'New Role',
+            href: '/admin/roles?new=1',
+            icon: IconShieldPlus,
+          },
+        ]
+      : []),
+  ];
 
   const days = daysUntil(me.organisation.expiresOn, me.organisation.timeZone);
   const banner = (
@@ -132,9 +185,15 @@ export function AppFrame({ children }: { children: ReactNode }) {
         { label: 'Change PIN', icon: IconKey, href: '/profile#pin' },
       ]}
       onSignOut={signOut}
+      headerActions={
+        <>
+          <QuickActions actions={quickActions} linkComponent={Link} />
+          <NotificationBell />
+        </>
+      }
       banner={banner}
     >
-      {children}
+      <Suspense fallback={<PageLoader />}>{children}</Suspense>
     </AppLayout>
   );
 }

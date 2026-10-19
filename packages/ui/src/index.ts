@@ -8,6 +8,7 @@ export * from './DataTable';
 export * from './DetailList';
 export * from './feedback';
 export * from './format';
+export * from './HeaderActions';
 export * from './http';
 export * from './PageHeader';
 export * from './PageLoader';
