@@ -105,6 +105,17 @@ const run = async () => {
   const env = validateEnv(process.env);
   if (env.NODE_ENV === 'production')
     throw new Error('seed:demo must not run in production.');
+  // A remote database (staging) must be named explicitly, so a .env that
+  // points at production can never be seeded by accident. Supabase projects
+  // share pooler hosts, so the target includes the user (postgres.<ref>).
+  const url = new URL(env.DATABASE_URL);
+  const target = `${decodeURIComponent(url.username)}@${url.hostname}`;
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  if (!local && process.env.DEMO_SEED_TARGET !== target)
+    throw new Error(
+      `seed:demo refuses the remote database ${target}. If this is staging, ` +
+        `run it again with DEMO_SEED_TARGET=${target}.`,
+    );
 
   const dataSource = await new DataSource(
     buildDataSourceOptions(env),
