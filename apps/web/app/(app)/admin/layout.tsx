@@ -41,7 +41,11 @@ export default function ManageLayout({ children }: { children: ReactNode }) {
           display: 'flex',
           gap: 16,
           flexWrap: 'wrap',
+          alignItems: 'flex-start',
           borderColor: COLORS.border,
+          // Fill the screen below the header and title on every section, so
+          // the card keeps one size whether a list is long, short or loading.
+          minHeight: 'calc(100vh - 230px)',
         }}
       >
         <style>{`@media (max-width: 62em) { .cc-manage-rail { flex-direction: row !important; flex: 1 1 100% !important; overflow-x: auto; } .cc-manage-rail a { white-space: nowrap; flex: 0 0 auto; } }`}</style>
