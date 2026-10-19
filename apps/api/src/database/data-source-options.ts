@@ -36,5 +36,12 @@ export const buildDataSourceOptions = (
   extra: {
     max: env.DATABASE_POOL_SIZE,
     application_name: 'corecheck-api',
+    // Supabase's pooler and cloud networks drop idle connections. Close ours
+    // first and keep live ones warm, so a request never picks up a socket
+    // that has already been cut (ECONNRESET / ETIMEDOUT).
+    idleTimeoutMillis: 30_000,
+    keepAlive: true,
+    keepAliveInitialDelayMillis: 10_000,
+    connectionTimeoutMillis: 10_000,
   },
 });

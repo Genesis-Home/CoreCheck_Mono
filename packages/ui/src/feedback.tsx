@@ -26,8 +26,11 @@ const TOAST_CSS = `
   --toastify-color-progress-warning: #F79009;
   --toastify-font-family: inherit;
   --toastify-toast-min-height: 52px;
+  --toastify-toast-bd-radius: 10px;
 }
-.Toastify__toast { border-radius: 10px; font-size: 14px; font-weight: 500;
+/* The toast clips its own progress bar, so the bar follows the rounded
+   corners instead of poking out past the border. */
+.Toastify__toast { overflow: hidden; font-size: 14px; font-weight: 500;
   box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08); }
 .Toastify__toast--success { border: 1px solid #75E0A7; }
 .Toastify__toast--error { border: 1px solid #FDA29B; }
@@ -35,7 +38,7 @@ const TOAST_CSS = `
 .Toastify__toast--warning { border: 1px solid #FEC84B; }
 .Toastify__toast-icon svg { fill: currentColor; }
 .Toastify__close-button { color: currentColor; opacity: 0.7; align-self: center; }
-.Toastify__progress-bar--wrp { height: 3px; }
+.Toastify__progress-bar--wrp { height: 3px; border-radius: 0; }
 `;
 
 /** Mount once near the root of each app. */
