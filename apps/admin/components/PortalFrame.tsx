@@ -2,9 +2,7 @@
 
 import { Group, Text } from '@mantine/core';
 import {
-  IconBuildingPlus,
   IconBuildingSkyscraper,
-  IconUserPlus,
   IconListDetails,
   IconUserCog,
   IconUsers,
@@ -18,10 +16,8 @@ import {
   AppLayout,
   COLORS,
   type NavEntry,
-  NotificationBell,
   PageLoader,
   Pill,
-  QuickActions,
 } from '@corecheck/ui';
 import { api, useLogoutMutation, useMeQuery } from '../lib/api';
 
@@ -88,34 +84,6 @@ export function PortalFrame({ children }: { children: ReactNode }) {
       userDetail={`${STAFF_ROLE_LABELS[me.staffRole]} · ${me.email}`}
       userMenu={[{ label: 'My account', icon: IconUserCog, href: '/account' }]}
       onSignOut={signOut}
-      headerActions={
-        <>
-          <QuickActions
-            linkComponent={Link}
-            actions={[
-              ...(me.staffRole === 'owner' || me.staffRole === 'admin'
-                ? [
-                    {
-                      label: 'New Organisation',
-                      href: '/organisations/new',
-                      icon: IconBuildingPlus,
-                    },
-                  ]
-                : []),
-              ...(me.staffRole === 'owner'
-                ? [
-                    {
-                      label: 'Add Staff Member',
-                      href: '/staff?new=1',
-                      icon: IconUserPlus,
-                    },
-                  ]
-                : []),
-            ]}
-          />
-          <NotificationBell />
-        </>
-      }
     >
       <Suspense fallback={<PageLoader label="CoreCheck Admin" />}>
         {children}
