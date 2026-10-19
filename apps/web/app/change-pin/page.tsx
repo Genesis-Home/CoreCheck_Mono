@@ -1,6 +1,5 @@
 'use client';
 
-import { Loader } from '@mantine/core';
 import { useRouter } from 'next/navigation';
 import { AuthLayout, PageLoader } from '@corecheck/ui';
 import { ChangePinForm } from '../../components/ChangePinForm';

@@ -104,7 +104,16 @@ export const api = createApi({
     }),
     changePin: build.mutation<MeResponse, ChangePinInput>({
       query: (body) => ({ url: '/auth/change-pin', method: 'POST', body }),
-      invalidatesTags: ['Me'],
+      // Store the new session state at once: the app must not see the old
+      // 'PIN must be changed' flag and send the user back to this screen.
+      async onQueryStarted(_body, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(api.util.upsertQueryData('me', undefined, data));
+        } catch {
+          // The failure is shown by the form and its toast.
+        }
+      },
     }),
     logout: build.mutation<void, void>({
       query: () => ({ url: '/auth/logout', method: 'POST' }),
