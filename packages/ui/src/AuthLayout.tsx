@@ -35,65 +35,62 @@ export const AuthLayout = ({
     <Box
       visibleFrom="md"
       style={{
-        // Figma proportions: the panel is about 37% of the frame.
-        flex: '0 0 40%',
-        maxWidth: 720,
+        // The Figma panel is about 0.56 as wide as it is tall. Sizing it from
+        // the window height keeps the artwork in the same place on a laptop
+        // and on a wide monitor.
+        flex: 'none',
+        width: 'min(42vw, calc((100vh - 24px) * 0.56))',
         borderRadius: 16,
         position: 'relative',
         overflow: 'hidden',
-        // Two soft circles over the panel blue, as in the Figma frame. Sized
-        // in percent so they keep their shape at every screen size.
-        background: [
-          `radial-gradient(circle at 92% 22%, ${CIRCLE_BLUE} 0 58%, transparent 58.4%)`,
-          `radial-gradient(circle at -18% 108%, ${CIRCLE_BLUE} 0 40%, transparent 40.4%)`,
-          PANEL_BLUE,
-        ].join(', '),
+        backgroundColor: PANEL_BLUE,
       }}
     >
-      <Box p={{ base: 24, xl: 32 }} style={{ position: 'relative' }}>
+      {/* The soft circle behind the artwork: it leaves the top-left and
+          bottom-left corners in the deeper blue, as in the Figma frame. */}
+      <Box
+        aria-hidden
+        style={{
+          position: 'absolute',
+          height: '125%',
+          aspectRatio: '1',
+          borderRadius: '50%',
+          left: '-4%',
+          top: '-10.5%',
+          backgroundColor: CIRCLE_BLUE,
+        }}
+      />
+      <Box p={24} style={{ position: 'relative' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-dark.png"
           alt="CoreCheck"
-          style={{ height: 26, width: 'auto' }}
+          style={{ height: 24, width: 'auto' }}
         />
         <Text mt={8} fz="sm" fw={500} c={COLORS.secondaryText}>
           Inspect. Comply. Improve.
         </Text>
       </Box>
-      {/* The product preview window: 13% in from the left, running off the
-          right edge, from a third of the way down to just above the foot. The
-          picture fills the window from its top-left corner, so the panel
-          looks the same on a laptop and on a wide monitor. */}
-      <Box
+      {/* The product preview at its own proportions (never stretched): 13%
+          in from the left, reaching the right edge, just above the foot. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/login-preview.png"
+        alt=""
         aria-hidden
         style={{
           position: 'absolute',
           left: '13%',
-          right: 0,
-          top: '30%',
           bottom: '6%',
+          width: '87%',
+          height: 'auto',
           border: `6px solid ${COLORS.secondaryBorder}`,
           borderRight: 'none',
-          borderTopLeftRadius: 18,
-          borderBottomLeftRadius: 18,
-          overflow: 'hidden',
+          borderTopLeftRadius: 16,
+          borderBottomLeftRadius: 16,
           backgroundColor: COLORS.tableHead,
         }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/login-preview.png"
-          alt=""
-          style={{
-            display: 'block',
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'left top',
-          }}
-        />
-      </Box>
+      />
     </Box>
     <Box
       style={{
